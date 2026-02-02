@@ -3,9 +3,9 @@ import math
 from itertools import combinations
 
 # 1. Βασικές Ρυθμίσεις
-st.set_page_config(page_title="BigBet Precise", layout="wide")
+st.set_page_config(page_title="BigBet Precise v2", layout="wide")
 
-# 2. CSS - Σταθερή και απλή έκδοση
+# 2. CSS - Εστιασμένο στα κίτρινα πεδία
 st.markdown("""
     <style>
     /* Φόντο Σελίδας */
@@ -20,7 +20,7 @@ st.markdown("""
         border: 1px solid #BBDEFB;
     }
     
-    /* Κίτρινα Πεδία Εισαγωγής Αριθμών */
+    /* Κίτρινα Πεδία Εισαγωγής (Κείμενο & Αριθμοί) */
     input {
         background-color: #FFF9C4 !important;
         border: 2px solid #FBC02D !important;
@@ -28,6 +28,13 @@ st.markdown("""
         color: #0D47A1 !important;
     }
     
+    /* Κίτρινο Πεδίο Επιλογής Σημείων (Selectbox) */
+    div[data-baseweb="select"] > div {
+        background-color: #FFF9C4 !important;
+        border: 2px solid #FBC02D !important;
+        font-weight: bold !important;
+    }
+
     /* Χρυσός Μετρητής */
     .counter-box {
         background-color: #FFD700;
@@ -92,7 +99,9 @@ if st.session_state.my_bet:
             item = st.session_state.my_bet[i]
             cl1, cl2, cl3 = st.columns([1, 2, 0.8])
             with cl1: st.write(f"**{item['Κ']}**")
-            with cl2: st.session_state.my_bet[i]['Σ'] = st.selectbox(f"s_{i}", opts, key=f"sel_{i}", index=opts.index(item['Σ']))
+            with cl2: 
+                # Το κίτρινο θα εφαρμοστεί και εδώ
+                st.session_state.my_bet[i]['Σ'] = st.selectbox(f"s_{i}", opts, key=f"sel_{i}", index=opts.index(item['Σ']), label_visibility="collapsed")
             with cl3:
                 if st.button("❌", key=f"d_{i}"):
                     st.session_state.my_bet.pop(i)
@@ -110,4 +119,3 @@ if st.session_state.my_bet:
 
     if st.button("🗑️ Καθαρισμός Όλων"):
         st.session_state.my_bet = []
-        st.rerun()
