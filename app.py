@@ -3,109 +3,103 @@ import math
 import random
 from itertools import combinations
 
-# 1. Βασικές Ρυθμίσεις
-st.set_page_config(page_title="BigBet Pro", layout="wide")
+# 1. Ρυθμίσεις Σελίδας
+st.set_page_config(page_title="BigBet Yellow Edition", layout="wide")
 
-# 2. Απλό CSS για Χρώματα (Χωρίς βαριά γραφικά που προκαλούν error)
+# 2. CSS για Γαλάζιο Φόντο και Ελαφρύ Κίτρινο στα Πλαίσια
 st.markdown("""
     <style>
-    .stApp { background-color: #E3F2FD; }
-    .main-box {
-        background-color: #FFFFFF; 
-        padding: 20px; 
-        border-radius: 10px; 
-        border: 1px solid #BBDEFB;
-        margin-bottom: 10px;
+    /* Φόντο Σελίδας */
+    .stApp { 
+        background-color: #E3F2FD; 
     }
-    .total-label {
-        font-size: 30px !important; font-weight: bold; color: #0D47A1;
-        text-align: center; padding: 15px; background-color: #FFD700;
-        border-radius: 10px; border: 2px solid #DAA520;
+    
+    /* ΤΑ ΠΛΑΙΣΙΑ ΣΕ ΕΛΑΦΡΥ ΚΙΤΡΙΝΟ */
+    div[data-testid="stVerticalBlock"] > div {
+        background-color: #FFF9C4 !important; /* Απαλό κίτρινο */
+        border-radius: 15px; 
+        padding: 20px; 
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
+        border: 1px solid #FBC02D; /* Διακριτικό περίγραμμα */
+    }
+    
+    /* Λευκά εσωτερικά κουτάκια για να ξεχωρίζουν μέσα στο κίτρινο */
+    .stTextInput input, .stSelectbox div, .stNumberInput input {
+        background-color: #FFFFFF !important;
+    }
+
+    /* Ο Χρυσός Μετρητής παραμένει έντονος */
+    .total-matches-label {
+        font-size: 32px !important; font-weight: bold; color: #0D47A1;
+        text-align: center; padding: 20px;
+        background-color: #FFD700 !important; 
+        border: 3px solid #DAA520; border-radius: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Αρχικοποίηση Μνήμης
-if 'my_bet' not in st.session_state:
-    st.session_state.my_bet = []
-if 'input_counter' not in st.session_state:
-    st.session_state.input_counter = 0
+# Αρχικοποίηση
+if 'my_bet' not in st.session_state: st.session_state.my_bet = []
+if 'input_counter' not in st.session_state: st.session_state.input_counter = 0
 
-st.title("🏆 BigBet Pro Tool")
+st.title("🏆 BigBet Printer Pro")
 
 # --- ΜΑΖΙΚΗ ΕΙΣΑΓΩΓΗ ---
-st.markdown('<div class="main-box"><b>🔗 Μαζική Εισαγωγή (Από - Έως)</b>', unsafe_allow_html=True)
+st.markdown("### 🔗 Μαζική Εισαγωγή")
 c1, c2, c3 = st.columns([1, 1, 1.5])
 with c1:
-    s_val = st.text_input("ΑΠΟ", key="start_range", max_chars=3)
+    s_range = st.text_input("ΑΠΟ", key="s_r", max_chars=3)
 with c2:
-    e_val = st.text_input("ΕΩΣ", key="end_range", max_chars=3)
+    e_range = st.text_input("ΕΩΣ", key="e_r", max_chars=3)
 with c3:
-    st.write(" ") # Padding
+    st.write(" ")
     if st.button("Προσθήκη Εύρους ➕"):
-        if s_val.isdigit() and e_val.isdigit():
-            s, e = int(s_val), int(e_val)
-            if s <= e:
-                for code in range(s, e + 1):
-                    fmt_code = str(code).zfill(3)
-                    if not any(x['Κ'] == fmt_code for x in st.session_state.my_bet):
-                        st.session_state.my_bet.append({"Κ": fmt_code, "Σ": "1"})
-                st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+        if s_range.isdigit() and e_range.isdigit():
+            for code in range(int(s_range), int(e_range) + 1):
+                fmt = str(code).zfill(3)
+                if not any(x['Κ'] == fmt for x in st.session_state.my_bet):
+                    st.session_state.my_bet.append({"Κ": fmt, "Σ": "1"})
+            st.rerun()
 
 # --- ΜΕΜΟΝΩΜΕΝΗ ΕΙΣΑΓΩΓΗ ---
-st.markdown('<div class="main-box"><b>📍 Εισαγωγή Κωδικού</b>', unsafe_allow_html=True)
 curr_key = f"in_{st.session_state.input_counter}"
-u_input = st.text_input("Γράψε κωδικό και πάτα Enter", key=curr_key, max_chars=3)
-st.markdown('</div>', unsafe_allow_html=True)
+u_input = st.text_input("📍 ΕΙΣΑΓΩΓΗ ΚΩΔΙΚΟΥ", key=curr_key, max_chars=3)
 
-# --- ΜΕΤΡΗΤΗΣ ΑΓΩΝΩΝ ---
-st.markdown(f'<div class="total-label">ΣΥΝΟΛΟ ΑΓΩΝΩΝ: {len(st.session_state.my_bet)}</div>', unsafe_allow_html=True)
+# Μετρητής
+st.markdown(f'<div class="total-matches-label">ΣΥΝΟΛΟ ΑΓΩΝΩΝ: {len(st.session_state.my_bet)}</div>', unsafe_allow_html=True)
 
 if len(u_input) == 3 and u_input.isdigit():
     st.session_state.my_bet.append({"Κ": u_input, "Σ": "1"})
     st.session_state.input_counter += 1
     st.rerun()
 
-# --- ΛΙΣΤΑ ΚΑΙ ΣΥΣΤΗΜΑΤΑ ---
+# --- ΛΙΣΤΑ ΚΑΙ ΣΥΣΤΗΜΑ ---
 if st.session_state.my_bet:
     col_l, col_r = st.columns(2)
     
     with col_l:
-        st.subheader("📋 Λίστα")
+        st.subheader("📋 Λίστα Αγώνων")
         opts = ["1", "X", "2", "G/G", "N/G", "Over 2.5", "Under 2.5", "1X", "X2"]
         for i in range(len(st.session_state.my_bet)-1, -1, -1):
             item = st.session_state.my_bet[i]
             cl1, cl2, cl3 = st.columns([1, 2, 0.8])
             with cl1: st.write(f"**{item['Κ']}**")
-            with cl2: 
-                st.session_state.my_bet[i]['Σ'] = st.selectbox(f"sel_{i}", opts, key=f"s_{i}", index=opts.index(item['Σ']))
+            with cl2: st.session_state.my_bet[i]['Σ'] = st.selectbox(f"s_{i}", opts, key=f"sel_{i}", index=opts.index(item['Σ']))
             with cl3:
-                if st.button("❌", key=f"del_{i}"):
+                if st.button("❌", key=f"d_{i}"):
                     st.session_state.my_bet.pop(i)
                     st.rerun()
 
     with col_r:
         st.subheader("🔢 Σύστημα")
         n = len(st.session_state.my_bet)
-        k = st.number_input("Ζητούμενα:", 1, max(1, n), min(n, 3) if n >=3 else 1)
-        total = math.comb(n, k)
-        st.metric("Σύνολο Στηλών", f"{total:,}")
+        k = st.number_input("Ζητούμενα:", 1, max(1, n), min(n, 3) if n>=3 else 1)
+        st.metric("Σύνολο Στηλών", f"{math.comb(n, k):,}")
         
-        if total > 0:
-            if total <= 500:
-                if st.checkbox("Εμφάνιση Όλων"):
-                    for combo in combinations(st.session_state.my_bet, k):
-                        st.text(" · ".join([f"{x['Κ']}[{x['Σ']}]" for x in combo]))
-            else:
-                st.warning("Πολλές στήλες. Δες τυχαίες:")
-                num_r = st.number_input("Πόσες;", 1, total, 10)
-                if st.button("✨ Παραγωγή"):
-                    all_c = list(combinations(st.session_state.my_bet, k))
-                    for c in random.sample(all_c, num_r):
-                        st.text(" · ".join([f"{x['Κ']}[{x['Σ']}]" for x in c]))
+        if st.button("🖨️ Εκτύπωση σε Δελτίο"):
+            st.info("Εδώ θα ενεργοποιηθεί η εκτύπωση με τις συντεταγμένες που θα βρούμε.")
 
-    if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ ΟΛΩΝ"):
+    if st.button("🗑️ Καθαρισμός Όλων"):
         st.session_state.my_bet = []
-        st.session_state.input_counter = 0
         st.rerun()
