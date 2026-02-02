@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="BigBet Pro", layout="wide")
 
-# --- CSS ΓΙΑ ΜΙΚΡΟΤΕΡΑ ΝΟΥΜΕΡΑ ΚΑΙ ΕΝΤΟΝΟ ΜΕΤΡΗΤΗ ---
+# --- CSS ΓΙΑ ΜΙΚΡΟΤΕΡΑ ΝΟΥΜΕΡΑ ΚΑΙ ΜΠΛΕ/ΧΡΥΣΟ ΜΕΤΡΗΤΗ ---
 st.markdown("""
     <style>
     div.stTextInput > div > div > input {
@@ -17,15 +17,17 @@ st.markdown("""
         border-radius: 10px !important;
     }
     .total-matches-label {
-        font-size: 28px !important;
+        font-size: 30px !important;
         font-weight: bold !important;
-        color: #D32F2F; /* Ερυθρό χρώμα για να ξεχωρίζει */
+        color: #0000FF; /* Μπλε χρώμα γραμμάτων */
         text-align: center;
         margin-top: 10px;
         margin-bottom: 20px;
-        padding: 10px;
-        background-color: #FFEBEE;
-        border-radius: 10px;
+        padding: 15px;
+        background-color: #FFD700; /* Χρυσό χρώμα πλαισίου */
+        border: 3px solid #DAA520; /* Πιο σκούρο χρυσό περίγραμμα */
+        border-radius: 15px;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
     }
     .stMetric { background-color: #ffffff; padding: 10px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
@@ -64,7 +66,7 @@ st.write("Εισαγωγή 3ψήφιου κωδικού:")
 current_key = f"input_field_{st.session_state.input_counter}"
 user_input = st.text_input("ΚΩΔΙΚΟΣ", key=current_key, max_chars=3, label_visibility="collapsed")
 
-# --- Ο ΕΥΔΙΑΚΡΙΤΟΣ ΜΕΤΡΗΤΗ ΑΓΩΝΩΝ ---
+# --- Ο ΜΠΛΕ ΣΕ ΧΡΥΣΟ ΜΕΤΡΗΤΗΣ ΑΓΩΝΩΝ ---
 num_matches = len(st.session_state.my_bet)
 st.markdown(f'<div class="total-matches-label">ΣΥΝΟΛΟ ΑΓΩΝΩΝ: {num_matches}</div>', unsafe_allow_html=True)
 
@@ -117,15 +119,4 @@ if st.session_state.my_bet:
                         st.text(f"Στ. {idx}: {res}")
             
             else: # Όλες οι στήλες
-                if total_cols <= 100000:
-                    if st.checkbox("🔍 Εμφάνιση Αναλυτικών Στηλών"):
-                        for idx, c in enumerate(all_combos, 1):
-                            res = " · ".join([f"{item['Κ']}[{item['Σ']}]" for item in c])
-                            st.text(f"Στ. {idx}: {res}")
-                else:
-                    st.warning("⚠️ Πολλές στήλες (>100.000).")
-
-    if st.button("Καθαρισμός Όλων 🗑️"):
-        st.session_state.my_bet = []
-        st.session_state.input_counter = 0
-        st.rerun()
+                if total_cols <=
