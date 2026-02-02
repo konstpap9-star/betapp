@@ -1,55 +1,69 @@
-
 import streamlit as st
+import streamlit.components.v1 as components
 
-# Ρύθμιση σελίδας
-st.set_page_config(page_title="BigBet Tool", layout="centered")
+# Ρυθμίσεις εμφάνισης
+st.set_page_config(page_title="BigBet Tool", layout="wide")
+
+# --- CSS ΓΙΑ ΚΑΛΥΤΕΡΗ ΕΜΦΑΝΙΣΗ ---
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stApp {background-color: #f0f2f6;}
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- ΠΛΑΓΙΟ ΜΕΝΟΥ ---
-st.sidebar.title("🛠️ Μενού Εργαλείων")
-choice = st.sidebar.radio("Επιλέξτε Εργαλείο:", 
-                         ["Υπολογιστής Value Bet", "Arbitrage (Σίγουρο Κέρδος)"])
+st.sidebar.title("🛠️ Εργαλεία")
+choice = st.sidebar.radio("Επιλέξτε λειτουργία:", 
+                         ["Ζωντανά Σκορ", "Value Bet", "Arbitrage", "Κάλυψη (DNB)"])
 
-# --- 1. ΥΠΟΛΟΓΙΣΤΗΣ VALUE BET ---
-if choice == "Υπολογιστής Value Bet":
-    st.title("📊 Υπολογιστής Value Bet")
-    st.write("Δες αν η απόδοση του μπουκ είναι μεγαλύτερη από την πραγματική πιθανότητα.")
+# --- 1. ΖΩΝΤΑΝΑ ΣΚΟΡ ---
+if choice == "Ζωντανά Σκορ":
+    st.title("⚽ Ζωντανά Αποτελέσματα")
+    st.write("Δες την εξέλιξη των αγώνων σε πραγματικό χρόνο.")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        od = st.number_input("Απόδοση Εταιρείας", min_value=1.01, value=2.00, step=0.10)
-    with col2:
-        pr = st.number_input("Η Πιθανότητα που δίνεις %", min_value=1, max_value=100, value=50)
-    
-    fair = 100 / pr
-    ev = (od * (pr / 100)) - 1
-    
-    st.subheader(f"Δίκαιη Απόδοση: {fair:.2f}")
-    if ev > 0:
-        st.success(f"✅ ΥΠΑΡΧΕΙ VALUE! Πλεονέκτημα: +{ev*100:.2f}%")
-    else:
-        st.error(f"❌ ΧΩΡΙΣ VALUE. Μειονέκτημα: {ev*100:.2f}%")
+    # Ενσωμάτωση εξωτερικού Live Score widget (δωρεάν και σταθερό)
+    components.html(
+        """
+        <div id="fs-wm"></div>
+        <script type="text/javascript" src="https://widget.enetscore.com/FWB4A1D88E23689456"></script>
+        <iframe src="https://www.livescore.cz/widgets/scores.php?lang=el" 
+                width="100%" height="800" frameborder="0"></iframe>
+        """,
+        height=800,
+        scrolling=True
+    )
 
-# --- 2. ARBITRAGE CALCULATOR ---
-elif choice == "Arbitrage (Σίγουρο Κέρδος)":
-    st.title("💰 Arbitrage Calculator")
-    st.write("Υπολόγισε αν υπάρχει σίγουρο κέρδος από δύο διαφορετικές εταιρείες.")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        od1 = st.number_input("Απόδοση για Σημείο 1 (π.χ. Άσσος)", min_value=1.01, value=2.10)
-    with c2:
-        od2 = st.number_input("Απόδοση για Σημείο 2 (π.χ. Διπλό)", min_value=1.01, value=2.10)
-    
-    total_bet = st.number_input("Συνολικό Ποντάρισμα (€)", min_value=10, value=100)
-    
-    arbitrage_pct = (1/od1) + (1/od2)
-    
-    if arbitrage_pct < 1:
-        st.success(f"🔥 ARBITRAGE! Σίγουρο κέρδος: {((1/arbitrage_pct)-1)*100:.2f}%")
-        stake1 = (total_bet / od1) / arbitrage_pct
-        stake2 = (total_bet / od2) / arbitrage_pct
-        st.write(f"Πόνταρε **{stake1:.2f}€** στην πρώτη απόδοση")
-        st.write(f"Πόνταρε **{stake2:.2f}€** στη δεύτερη απόδοση")
-    else:
-        st.warning(f"Δεν υπάρχει Arbitrage. Συνολική γκανιότα: {arbitrage_pct*100:.2f}%")
+# --- 2. VALUE BET ---
+elif choice == "Value Bet":
+    st.title("📊 Value Bet")
+    od = st.number_input("Απόδοση", min_value=1.01, value=2.00)
+    pr = st.number_input("Πιθανότητα %", min_value=1, max_value=100, value=50)
+    if st.button("Υπολογισμός"):
+        ev = (od * (pr/100)) - 1
+        if ev > 0: st.success(f"✅ VALUE! +{ev*100:.1f}%")
+        else: st.error(f"❌ ΟΧΙ VALUE. {ev*100:.1f}%")
+
+# --- 3. ARBITRAGE ---
+elif choice == "Arbitrage":
+    st.title("💰 Arbitrage")
+    o1 = st.number_input("Απόδοση 1", value=2.10)
+    o2 = st.number_input("Απόδοση 2", value=2.10)
+    if st.button("Έλεγχος"):
+        arb = (1/o1) + (1/o2)
+        if arb < 1: st.success(f"🔥 ΣΙΓΟΥΡΟ ΚΕΡΔΟΣ! {((1/arb)-1)*100:.2f}%")
+        else: st.warning("Δεν υπάρχει Arbitrage.")
+
+# --- 4. ΚΑΛΥΨΗ (DNB) ---
+elif choice == "Κάλυψη (DNB)":
+    st.title("🛡️ Κάλυψη (DNB)")
+    win_od = st.number_input("Απόδοση Νίκης", value=2.50)
+    draw_od = st.number_input("Απόδοση Ισοπαλίας", value=3.20)
+    total = st.number_input("Ποσό (€)", value=20)
+    if st.button("Υπολογισμός"):
+        d_stake = total / draw_od
+        w_stake = total - d_stake
+        st.info(f"Πόνταρε {d_stake:.2f}€ στο Χ και {w_stake:.2f}€ στη Νίκη.")
 
