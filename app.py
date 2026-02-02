@@ -4,31 +4,32 @@ import random
 from itertools import combinations
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="BigBet Pro Clean", layout="wide")
+st.set_page_config(page_title="BigBet Light Edition", layout="wide")
 
-# --- CSS ΓΙΑ ΜΕΓΙΣΤΗ ΕΥΚΡΙΝΕΙΑ (High Contrast) ---
+# --- CSS ΓΙΑ ΑΝΟΙΧΤΟΧΡΩΜΟ & ΕΥΔΙΑΚΡΙΤΟ ΠΕΡΙΒΑΛΛΟΝ ---
 st.markdown("""
     <style>
-    /* Φόντο σε βαθύ σκοτεινό μπλε-γκρι */
+    /* Φόντο σε απαλό γκρι-λευκό */
     .stApp {
-        background-color: #0E1117;
+        background-color: #F8F9FA;
     }
     
-    /* Κάρτες για τα περιεχόμενα με απαλό περίγραμμα */
+    /* Λευκές κάρτες με ελαφριά σκιά για βάθος */
     div[data-testid="stVerticalBlock"] > div {
-        background-color: #1A1C24;
-        border-radius: 12px;
-        padding: 5px;
+        background-color: #FFFFFF;
+        border-radius: 15px;
+        padding: 10px;
+        box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
     }
 
-    /* Πλαίσιο εισαγωγής κωδικού */
+    /* Πλαίσιο εισαγωγής κωδικού (Μεγάλο και καθαρό) */
     div.stTextInput > div > div > input {
         font-size: 28px !important; 
         text-align: center !important; 
         font-weight: bold !important; 
-        color: #FFFFFF !important;
-        background-color: #262730 !important;
-        border: 2px solid #FFD700 !important;
+        color: #1A1A1A !important;
+        background-color: #FFFFFF !important;
+        border: 2px solid #007BFF !important; /* Μπλε περίγραμμα */
         height: 60px !important;
     }
 
@@ -36,29 +37,29 @@ st.markdown("""
     .total-matches-label {
         font-size: 32px !important; 
         font-weight: 900 !important; 
-        color: #001F3F !important; /* Πολύ σκούρο μπλε για αντίθεση στο χρυσό */
+        color: #004085 !important; /* Έντονο σκούρο μπλε */
         text-align: center; 
         margin: 15px 0px; 
         padding: 20px;
         background-color: #FFD700 !important; 
-        border: 2px solid #FFFFFF;
+        border: 2px solid #DAA520;
         border-radius: 15px;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
     }
     
-    /* Τίτλοι και κείμενα */
+    /* Τίτλοι και κείμενα σε σκούρο χρώμα */
     h1, h2, h3, p, span, label {
-        color: #FFFFFF !important;
+        color: #1A1A1A !important;
     }
 
-    /* Στυλ για τις στήλες στην ανάλυση */
+    /* Στυλ για την ανάλυση στηλών */
     .stText {
-        background-color: #262730;
-        padding: 8px;
-        border-radius: 5px;
-        color: #FFD700 !important;
-        font-family: monospace;
-        font-size: 14px;
+        background-color: #F1F3F5;
+        padding: 10px;
+        border-radius: 8px;
+        color: #333333 !important;
+        font-weight: bold;
+        border-left: 5px solid #FFD700;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -110,7 +111,7 @@ if st.session_state.my_bet:
         m_opts = ["1", "X", "2", "G/G", "N/G", "Over 2.5", "Under 2.5", "1X", "X2"]
         for i in range(len(st.session_state.my_bet)-1, -1, -1):
             item = st.session_state.my_bet[i]
-            c1, c2, c3 = st.columns([1, 1.8, 0.6])
+            c1, c2, c3 = st.columns([0.8, 1.8, 0.6])
             with c1: st.write(f"**{item['Κ']}**")
             with c2: st.session_state.my_bet[i]['Σ'] = st.selectbox(f"s_{i}", m_opts, key=f"sel_{i}", index=m_opts.index(item['Σ']), label_visibility="collapsed")
             with c3:
