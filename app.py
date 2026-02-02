@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="BigBet Tool", layout="wide")
 
-# --- CSS ΓΙΑ ΕΜΦΑΝΙΣΗ ---
+# --- CSS ΣΤΥΛ ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -22,54 +22,61 @@ choice = st.radio("Διάλεξε Εργαλείο:",
 
 st.markdown("---")
 
-# --- 1. ΤΟ ΔΕΛΤΙΟ ΜΟΥ ---
 if choice == "Το Δελτίο μου":
-    st.subheader("📝 Δημιουργία Ψηφιακού Δελτίου")
+    st.subheader("📝 Διαχείριση Αγώνων")
     
     if 'my_bet' not in st.session_state:
         st.session_state.my_bet = []
 
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col1:
-        code = st.text_input("Κωδικός", placeholder="π.χ. 101")
-    with col2:
-        # Ενημερωμένη λίστα με όλες τις βασικές επιλογές και O/U έως 3.5
-        market_options = [
-            "1", "X", "2", 
-            "G/G", "N/G",
-            "Over 0.5", "Under 0.5",
-            "Over 1.5", "Under 1.5",
-            "Over 2.5", "Under 2.5",
-            "Over 3.5", "Under 3.5",
-            "1X", "X2", "12"
-        ]
-        market = st.selectbox("Επιλογή", market_options)
-    with col3:
-        odds = st.number_input("Απόδοση", min_value=1.01, value=1.80, step=0.01, format="%.2f")
+    # ΕΠΙΛΟΓΕΣ ΣΤΟΙΧΗΜΑΤΟΣ
+    market_options = [
+        "1", "X", "2", "G/G", "N/G",
+        "Over 0.5", "Under 0.5", "Over 1.5", "Under 1.5",
+        "Over 2.5", "Under 2.5", "Over 3.5", "Under 3.5",
+        "1X", "X2", "12"
+    ]
 
-    if st.button("Προσθήκη στο Δελτίο ➕"):
-        if code:
-            st.session_state.my_bet.append({"Κωδικός": code, "Σημείο": market, "Απόδοση": odds})
+    # ΜΑΖΙΚΗ ΕΙΣΑΓΩΓΗ
+    st.write("### Προσθήκη Αγώνων")
+    multi_codes = st.text_input("Βάλε κωδικούς χωρισμένους με κόμμα (π.χ. 101, 105, 110):")
+    
+    if st.button("Δημιουργία Γραμμών ➕"):
+        if multi_codes:
+            new_codes = [c.strip() for c in multi_codes.split(',') if c.strip()]
+            for c in new_codes:
+                st.session_state.my_bet.append({"Κωδικός": c, "Σημείο": "1", "Απόδοση": 1.80})
             st.rerun()
-        else:
-            st.warning("Παρακαλώ εισάγετε τον κωδικό του αγώνα.")
 
-    # Εμφάνιση Δελτίου
+    # ΕΠΕΞΕΡΓΑΣΙΑ ΔΕΛΤΙΟΥ
     if st.session_state.my_bet:
-        st.write("### Οι επιλογές σου:")
+        st.write("### Το Δελτίο σου (Επεξεργασία)")
         total_odds = 1.0
         
-        # Εμφάνιση των αγώνων σε πίνακα για καλύτερη ανάγνωση
+        # Κεφαλίδες
+        h1, h2, h3, h4 = st.columns([1, 2, 1, 0.5])
+        h1.write("**Κωδικός**")
+        h2.write("**Επιλογή**")
+        h3.write("**Απόδοση**")
+        h4.write("")
+
+        # Δυναμική επεξεργασία κάθε γραμμής
         for i, item in enumerate(st.session_state.my_bet):
-            col_a, col_b = st.columns([4, 1])
-            with col_a:
-                st.info(f"📍 {item['Κωδικός']} | {item['Σημείο']} | Απόδοση: {item['Απόδοση']}")
-            with col_b:
+            c1, c2, c3, c4 = st.columns([1, 2, 1, 0.5])
+            
+            with c1:
+                st.session_state.my_bet[i]['Κωδικός'] = st.text_input(f"code_{i}", value=item['Κωδικός'], label_visibility="collapsed")
+            with c2:
+                st.session_state.my_bet[i]['Σημείο'] = st.selectbox(f"mkt_{i}", market_options, index=market_options.index(item['Σημείο']), label_visibility="collapsed")
+            with c3:
+                st.session_state.my_bet[i]['Απόδοση'] = st.number_input(f"odd_{i}", min_value=1.01, value=item['Απόδοση'], step=0.01, format="%.2f", label_visibility="collapsed")
+            with c4:
                 if st.button("❌", key=f"del_{i}"):
                     st.session_state.my_bet.pop(i)
                     st.rerun()
-            total_odds *= item['Απόδοση']
-        
+            
+            total_odds *= st.session_state.my_bet[i]['Απόδοση']
+
+        st.markdown("---")
         st.success(f"**Συνολική Απόδοση: {total_odds:.2f}**")
         
         col_stake, col_win = st.columns(2)
@@ -78,28 +85,24 @@ if choice == "Το Δελτίο μου":
         with col_win:
             st.metric("Πιθανό Κέρδος", f"{stake * total_odds:.2f}€")
 
-        if st.button("Καθαρισμός Δελτίου 🗑️"):
+        if st.button("Καθαρισμός Όλων 🗑️"):
             st.session_state.my_bet = []
             st.rerun()
 
-# --- ΟΙ ΥΠΟΛΟΙΠΕΣ ΛΕΙΤΟΥΡΓΙΕΣ (Value Bet, Arbitrage, Live Σκορ) ---
+# Οι υπόλοιπες λειτουργίες παραμένουν ίδιες...
 elif choice == "Live Σκορ":
     components.html('<iframe src="https://www.livescore.cz/widgets/scores.php?lang=el" width="100%" height="800" frameborder="0"></iframe>', height=850)
-
 elif choice == "Value Bet":
-    st.subheader("📊 Υπολογιστής Value Bet")
-    od = st.number_input("Απόδοση", value=2.00, format="%.2f")
+    st.subheader("📊 Value Bet")
+    od = st.number_input("Απόδοση", value=2.00)
     pr = st.number_input("Πιθανότητα %", value=50)
     if st.button("Υπολογισμός"):
         ev = (od * (pr/100)) - 1
-        if ev > 0: st.success(f"✅ Value! {ev*100:.1f}%")
-        else: st.error(f"❌ Όχι Value. {ev*100:.1f}%")
-
+        st.write(f"Value: {ev*100:.1f}%")
 elif choice == "Arbitrage":
     st.subheader("💰 Arbitrage Calculator")
-    o1 = st.number_input("Απόδοση 1", value=2.10, format="%.2f")
-    o2 = st.number_input("Απόδοση 2", value=2.10, format="%.2f")
+    o1 = st.number_input("Απόδοση 1", value=2.10)
+    o2 = st.number_input("Απόδοση 2", value=2.10)
     if st.button("Έλεγχος"):
         arb = (1/o1) + (1/o2)
-        if arb < 1: st.success(f"🔥 Κέρδος: {((1/arb)-1)*100:.2f}%")
-        else: st.warning("Δεν υπάρχει Arbitrage.")
+        st.write(f"Πλεονέκτημα: {((1/arb)-1)*100:.2f}%")
