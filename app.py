@@ -14,7 +14,11 @@ if 'options' not in st.session_state:
         "Γ Under 2.5", "Φ Under 2.5", "Γ Under 3.5", "Φ Under 3.5"
     ]
 
-st.set_page_config(page_title="BigBet Random & Full", layout="wide")
+# Αρχικοποίηση μνήμης για τυχαίες στήλες
+if 'last_random_combos' not in st.session_state:
+    st.session_state.last_random_combos = []
+
+st.set_page_config(page_title="BigBet Random Fixed", layout="wide")
 
 # 2. CSS για Mobile & Κίτρινα Πεδία
 st.markdown("""
@@ -29,6 +33,7 @@ st.markdown("""
     .random-box { 
         background-color: #FFF9C4; padding: 10px; border-radius: 5px; 
         font-family: monospace; font-size: 14px; margin-bottom: 5px; border-left: 5px solid #FBC02D;
+        color: #0D47A1; font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -56,7 +61,7 @@ with st.container():
             st.session_state.my_bet.append({"Κ": u_input, "Σ": "1"})
             st.rerun()
 
-# --- ΛΙΣΤΑ ---
+# --- ΛΙΣΤΑ ΑΓΩΝΩΝ ---
 st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
 for i, item in enumerate(st.session_state.my_bet):
     col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
@@ -71,8 +76,39 @@ for i, item in enumerate(st.session_state.my_bet):
             st.session_state.my_bet.pop(i)
             st.rerun()
 
-# --- ΣΥΣΤΗΜΑ, ΑΝΑΠΤΥΞΗ & ΤΥΧΑΙΑ ---
+# --- ΣΥΣΤΗΜΑ, ΤΥΧΑΙΑ & ΑΝΑΠΤΥΞΗ ---
 if st.session_state.my_bet:
     st.divider()
     n = len(st.session_state.my_bet)
-    k = st.number_input("Ζητούμενα (
+    k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
+    
+    all_combos = list(combinations(st.session_state.my_bet, k))
+    total_cols = len(all_combos)
+    st.write(f"Σύνολο Πλήρους Ανάπτυξης: **{total_cols} στήλες**")
+
+    # ΤΥΧΑΙΑ ΕΠΙΛΟΓΗ (ΜΟΝΙΜΑ ΟΡΑΤΗ)
+    st.markdown("---")
+    st.subheader("🎲 Τυχαία Επιλογή")
+    num_random = st.number_input("Πόσες τυχαίες στήλες θέλεις;", 1, total_cols, min(total_cols, 5))
+    
+    if st.button("ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ 🎲"):
+        st.session_state.last_random_combos = random.sample(all_combos, int(num_random))
+
+    # Εμφάνιση των τυχαίων αν υπάρχουν
+    if st.session_state.last_random_combos:
+        st.write("**Οι Τυχαίες Στήλες σου:**")
+        for idx, combo in enumerate(st.session_state.last_random_combos):
+            txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
+            st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+    # ΠΛΗΡΗΣ ΑΝΑΠΤΥΞΗ
+    with st.expander("🔍 Δες την Πλήρη Ανάπτυξη"):
+        for idx, combo in enumerate(all_combos):
+            txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
+            st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
+
+    if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ ΟΛΩΝ"):
+        st.session_state.my_bet = []
+        st.session_state.last_random_combos = []
+        st.rerun()
