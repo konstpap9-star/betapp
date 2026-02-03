@@ -41,36 +41,27 @@ def create_pdf(combos):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
-    # ΡΥΘΜΙΣΕΙΣ ΣΥΝΤΕΤΑΓΜΕΝΩΝ (mm)
     start_x_code = 20  
     start_y = 24       
     row_height = 4     
     digit_spacing = 4.0 
-    
-    # ΤΟ ΣΩΣΤΟ ΜΕΓΕΘΟΣ ΚΟΥΚΙΔΑΣ (Ακτίνα 1.8mm)
-    radius = 1.8 
+    radius = 1.8 # ΤΟ ΜΕΓΕΘΟΣ ΠΟΥ ΒΡΗΚΑΜΕ
     
     points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
     for combo in combos:
         pdf.add_page()
         pdf.set_fill_color(0, 0, 0)
-        
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
-            
-            # 1. Κωδικός (3 γεμάτες κουκίδες)
             for j in range(3):
                 pdf.ellipse(start_x_code + (j * digit_spacing), current_y - radius, radius*2, radius*2, style='F')
-            
-            # 2. Σημείο (1, Χ, 2)
             point = match['Σ']
             if point in points_map:
                 pdf.ellipse(points_map[point], current_y - radius, radius*2, radius*2, style='F')
-
     return pdf.output(dest='S').encode('latin-1')
 
-# --- UI LOGIC ---
+# --- UI ---
 st.title("🏆 BigBet Printer Pro")
 
 c1, c2 = st.columns(2)
@@ -96,52 +87,44 @@ if st.session_state.my_bet:
     st.multiselect("🎯 Φίλτρο Τυχαίων Σημείων:", st.session_state.options, key="filter_points")
     st.button("🎲 ΤΥΧΑΙΑ ΣΥΜΠΛΗΡΩΣΗ ΑΓΩΝΩΝ", on_click=randomize_points, use_container_width=True)
 
-st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
 for i, item in enumerate(st.session_state.my_bet):
     col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
     col_k.write(f"**{item['Κ']}**")
-    choice = col_s.selectbox(f"Σημείο {i}", st.session_state.options, 
-                            index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
-                            key=f"sel_{i}", label_visibility="collapsed")
+    choice = col_s.selectbox(f"Σ {i}", st.session_state.options, index=st.session_state.options.index(item['Σ']), key=f"sel_{i}", label_visibility="collapsed")
     st.session_state.my_bet[i]['Σ'] = choice
     if col_d.button("✕", key=f"del_{i}"):
         st.session_state.my_bet.pop(i)
         st.rerun()
 
+# --- ΑΝΑΠΤΥΞΗ ΣΤΗΛΩΝ ---
 if st.session_state.my_bet:
     st.divider()
     n = len(st.session_state.my_bet)
     k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
     all_combos = list(combinations(st.session_state.my_bet, k))
     
-    st.info(f"Σύνολο Πλήρους Ανάπτυξης: **{len(all_combos)} στήλες**")
-
-    # --- ΤΥΧΑΙΕΣ ΣΤΗΛΕΣ ---
-    with st.form("random_gen_form"):
-        num_to_gen = st.number_input("Πόσες τυχαίες στήλες θέλεις;", 1, len(all_combos), min(len(all_combos), 10))
-        if st.form_submit_button("🎰 ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ ΣΤΗΛΩΝ", use_container_width=True):
-            st.session_state.last_random_combos = random.sample(all_combos, int(num_to_gen))
+    st.subheader(f"📊 Πλήρης Ανάπτυξη ({len(all_combos)} στήλες)")
+    
+    # 🎰 ΤΥΧΑΙΕΣ ΣΤΗΛΕΣ (ΠΡΟΑΙΡΕΤΙΚΑ)
+    with st.form("rnd_form"):
+        num_rnd = st.number_input("Τυχαίες στήλες για εκτύπωση;", 1, len(all_combos), 10)
+        if st.form_submit_button("🎰 ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ"):
+            st.session_state.last_random_combos = random.sample(all_combos, int(num_rnd))
 
     if st.session_state.last_random_combos:
-        st.write(f"🎰 **Τυχαίες Στήλες ({len(st.session_state.last_random_combos)}):**")
+        st.write("🎰 **Επιλεγμένες Τυχαίες Στήλες:**")
         for idx, combo in enumerate(st.session_state.last_random_combos):
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
-        
-        pdf_bytes = create_pdf(st.session_state.last_random_combos)
-        st.download_button("🖨️ ΚΑΤΕΒΑΣΜΑ PDF (Τυχαίες)", data=pdf_bytes, file_name="bet_random.pdf", mime="application/pdf", use_container_width=True)
+        st.download_button("🖨️ PDF ΤΥΧΑΙΩΝ", create_pdf(st.session_state.last_random_combos), "random.pdf", use_container_width=True)
 
-    # --- ΠΛΗΡΗΣ ΑΝΑΠΤΥΞΗ ---
-    with st.expander("🔍 ΠΡΟΒΟΛΗ ΟΛΩΝ ΤΩΝ ΣΤΗΛΩΝ (Πλήρης Ανάπτυξη)"):
-        for idx, combo in enumerate(all_combos):
-            txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
-            st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
-        
-        # Κουμπί για εκτύπωση ΟΛΩΝ των στηλών
-        pdf_all_bytes = create_pdf(all_combos)
-        st.download_button("🖨️ ΚΑΤΕΒΑΣΜΑ PDF (Όλες οι Στήλες)", data=pdf_all_bytes, file_name="bet_full.pdf", mime="application/pdf", use_container_width=True)
+    # 🔍 ΠΡΟΒΟΛΗ ΟΛΩΝ ΤΩΝ ΣΤΗΛΩΝ
+    st.write("🔍 **Αναλυτική Λίστα Όλων των Στηλών:**")
+    for idx, combo in enumerate(all_combos):
+        txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
+        st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
+    
+    st.download_button("🖨️ PDF ΠΛΗΡΟΥΣ ΑΝΑΠΤΥΞΗΣ", create_pdf(all_combos), "full.pdf", use_container_width=True)
 
     if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ"):
-        st.session_state.my_bet = []
-        st.session_state.last_random_combos = []
-        st.rerun()
+        st.session_state.my_bet = []; st.session_state.last_random_combos = []; st.rerun()
