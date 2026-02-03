@@ -17,7 +17,7 @@ if 'last_random_combos' not in st.session_state: st.session_state.last_random_co
 
 st.set_page_config(page_title="BigBet Printer Pro", layout="wide")
 
-# 2. CSS ΓΙΑ MOBILE FIX & ΧΡΩΜΑΤΑ
+# 2. CSS ΓΙΑ MOBILE FIX & ΧΡΩΜΑΤΑ (ΑΠΟ ΤΟ ΕΥΑΓΓΕΛΙΟ ΣΟΥ)
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
@@ -38,33 +38,33 @@ def randomize_points():
         st.session_state[f"sel_{i}"] = new_val
 
 def create_pdf(combos):
-    # Δημιουργία PDF σε οριζόντια διάταξη (Landscape)
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
-    # Οι μετρήσεις σου σε mm
-    start_x = 20  # Απόσταση Α
-    start_y = 24  # Απόσταση Β
-    row_height = 4  # Απόσταση σειρών
+    # ΡΥΘΜΙΣΕΙΣ ΓΙΑ ΤΟ ΔΕΛΤΙΟ (mm)
+    start_x_code = 20  # Απόσταση Α
+    start_y = 24       # Απόσταση Β
+    row_height = 4     # Απόσταση σειρών
+    digit_spacing = 4.0 
     
-    # Εκτιμώμενα διαστήματα (θα ρυθμιστούν μετά τη δοκιμή)
-    digit_spacing = 3.5 
-    points_offset = 60 # Πόσο δεξιά είναι τα σημεία 1-X-2
+    points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
     for combo in combos:
         pdf.add_page()
-        pdf.set_font("Courier", style='B', size=10) # Courier για σταθερό πλάτος
+        # ΜΕΓΕΘΟΣ 28 ΟΠΩΣ ΖΗΤΗΘΗΚΕ
+        pdf.set_font("Courier", style='B', size=28) 
         
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
             
-            # Εκτύπωση Κωδικού (π.χ. 123)
-            code = str(match['Κ']).zfill(3)
-            for j, digit in enumerate(code):
-                pdf.text(start_x + (j * digit_spacing), current_y, "X")
+            # 1. Κωδικός (3 Χ στα 20mm)
+            for j in range(3):
+                pdf.text(start_x_code + (j * digit_spacing), current_y, "X")
             
-            # Προσωρινή τοποθέτηση σημείου (θα το φτιάξουμε μόλις μετρήσεις)
-            pdf.text(start_x + points_offset, current_y, "X")
+            # 2. Σημείο (1, Χ, 2) στις αποστάσεις 83, 89, 95mm
+            point = match['Σ']
+            if point in points_map:
+                pdf.text(points_map[point], current_y, "X")
 
     return pdf.output(dest='S').encode('latin-1')
 
@@ -132,7 +132,6 @@ if st.session_state.my_bet:
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
         
-        # ΚΟΥΜΠΙ PDF
         pdf_bytes = create_pdf(st.session_state.last_random_combos)
         st.download_button(
             label="🖨️ ΚΑΤΕΒΑΣΜΑ PDF ΓΙΑ ΕΚΤΥΠΩΣΗ",
