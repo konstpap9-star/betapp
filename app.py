@@ -5,7 +5,7 @@ from itertools import combinations
 # 1. ΡΥΘΜΙΣΕΙΣ ΣΕΛΙΔΑΣ
 st.set_page_config(page_title="BigBet Pro", layout="wide")
 
-# 2. ΑΡΧΙΚΟΠΟΙΗΣΗ SESSION STATE
+# 2. ΑΡΧΙΚΟΠΟΙΗΣΗ ΜΝΗΜΗΣ
 if 'options' not in st.session_state:
     st.session_state.options = [
         "1", "X", "2", "1X", "X2", "12", "G/G", "N/G", 
@@ -18,21 +18,22 @@ if 'options' not in st.session_state:
 if 'my_bet' not in st.session_state: st.session_state.my_bet = []
 if 'last_random_combos' not in st.session_state: st.session_state.last_random_combos = []
 
-# 3. CSS ΓΙΑ STYLING & MOBILE KEYBOARD FIX
+# 3. CSS ΓΙΑ MOBILE KEYBOARD FIX & STYLING
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
-    /* Mobile Keyboard Fix: Εμποδίζει το πληκτρολόγιο στα selectboxes */
+    /* Mobile Keyboard Fix */
     div[data-baseweb="select"] input { inputmode: none !important; caret-color: transparent !important; }
-    
     input { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; font-weight: bold !important; }
     div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
-    
     .column-box { background-color: #f0f2f6; padding: 10px; border-radius: 5px; font-family: monospace; border-left: 5px solid #0D47A1; margin-bottom: 5px; font-size: 14px; }
     .random-box { background-color: #FFF9C4; padding: 10px; border-radius: 5px; font-family: monospace; border-left: 5px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 4. ΣΥΝΑΡΤΗΣΕΙΣ (Callbacks)
-def add_range_callback():
-    s = st.session_state.s
+# 4. ΛΕΙΤΟΥΡΓΙΕΣ (Logic)
+def randomize_points():
+    pool = st.session_state.allowed_points if st.session_state.get('allowed_points') else st.session_state.options
+    for i in range(len(st.session_state.my_bet)):
+        rnd = random.choice(pool)
+        # Ε
