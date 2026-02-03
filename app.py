@@ -55,4 +55,63 @@ if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕", use_container_width=True):
 u_input = st.text_input("📍 ΚΩΔΙΚΟΣ", key="manual", max_chars=3)
 if len(u_input) == 3 and u_input.isdigit():
     if not any(x['Κ'] == u_input for x in st.session_state.my_bet):
-        st.session_
+        st.session_state.my_bet.append({"Κ": u_input, "Σ": "1"})
+        st.rerun()
+
+# --- ΤΥΧΑΙΑ ΣΥΜΠΛΗΡΩΣΗ ---
+if st.session_state.my_bet:
+    st.divider()
+    st.multiselect("🎯 Φίλτρο Τυχαίων Σημείων (π.χ. μόνο 1-X-2):", 
+                   st.session_state.options, key="filter_points")
+    st.button("🎲 ΤΥΧΑΙΑ ΣΥΜΠΛΗΡΩΣΗ ΑΓΩΝΩΝ", on_click=randomize_points, use_container_width=True)
+
+# --- ΛΙΣΤΑ ΑΓΩΝΩΝ ---
+st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
+for i, item in enumerate(st.session_state.my_bet):
+    col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
+    col_k.write(f"**{item['Κ']}**")
+    
+    choice = col_s.selectbox(f"Σημείο {i}", st.session_state.options, 
+                            index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
+                            key=f"sel_{i}", label_visibility="collapsed")
+    st.session_state.my_bet[i]['Σ'] = choice
+    
+    if col_d.button("✕", key=f"del_{i}"):
+        st.session_state.my_bet.pop(i)
+        st.rerun()
+
+# --- ΕΝΟΤΗΤΑ ΑΝΑΠΤΥΞΗΣ ΣΥΣΤΗΜΑΤΟΣ ---
+if st.session_state.my_bet:
+    st.divider()
+    n = len(st.session_state.my_bet)
+    k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
+    
+    all_combos = list(combinations(st.session_state.my_bet, k))
+    total_columns = len(all_combos)
+    st.info(f"Σύνολο Πλήρους Ανάπτυξης: **{total_columns} στήλες**")
+
+    # ΧΡΗΣΗ FORM ΓΙΑ ΝΑ "ΚΛΕΙΔΩΣΕΙ" Η ΤΙΜΗ ΤΟΥ ΑΡΙΘΜΟΥ
+    with st.form("random_gen_form"):
+        num_to_gen = st.number_input("Πόσες τυχαίες στήλες θέλεις;", 1, total_columns, min(total_columns, 10))
+        submit_btn = st.form_submit_button("🎰 ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ ΣΤΗΛΩΝ", use_container_width=True)
+        
+        if submit_btn:
+            st.session_state.last_random_combos = random.sample(all_combos, int(num_to_gen))
+
+    # Εμφάνιση Τυχαίων Στηλών (ΕΚΤΟΣ FORM)
+    if st.session_state.last_random_combos:
+        st.write(f"🎰 **Επιλεγμένες Τυχαίες Στήλες ({len(st.session_state.last_random_combos)}):**")
+        for idx, combo in enumerate(st.session_state.last_random_combos):
+            txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
+            st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
+
+    # Πλήρης Ανάπτυξη
+    with st.expander("🔍 Προβολή Πλήρους Ανάπτυξης"):
+        for idx, combo in enumerate(all_combos):
+            txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
+            st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
+
+    if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ"):
+        st.session_state.my_bet = []
+        st.session_state.last_random_combos = []
+        st.rerun()
