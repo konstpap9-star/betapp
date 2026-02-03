@@ -17,7 +17,7 @@ if 'last_random_combos' not in st.session_state: st.session_state.last_random_co
 
 st.set_page_config(page_title="BigBet Printer Pro", layout="wide")
 
-# 2. CSS ΓΙΑ MOBILE FIX & ΧΡΩΜΑΤΑ (ΑΠΟ ΤΟ ΕΥΑΓΓΕΛΙΟ ΣΟΥ)
+# 2. CSS ΓΙΑ MOBILE FIX & ΧΡΩΜΑΤΑ (ΑΠΕΙΡΑΧΤΟ ΑΠΟ ΕΥΑΓΓΕΛΙΟ)
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
@@ -41,30 +41,34 @@ def create_pdf(combos):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
-    # ΡΥΘΜΙΣΕΙΣ ΓΙΑ ΤΟ ΔΕΛΤΙΟ (mm)
-    start_x_code = 20  # Απόσταση Α
-    start_y = 24       # Απόσταση Β
-    row_height = 4     # Απόσταση σειρών
+    # ΡΥΘΜΙΣΕΙΣ (mm)
+    start_x_code = 20  
+    start_y = 24       
+    row_height = 4     
     digit_spacing = 4.0 
     
     points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
+    # Χρησιμοποιούμε τη γραμματοσειρά ZapfDingbats για την κουκίδα
     for combo in combos:
         pdf.add_page()
-        # ΜΕΓΕΘΟΣ 28 ΟΠΩΣ ΖΗΤΗΘΗΚΕ
-        pdf.set_font("Courier", style='B', size=28) 
         
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
             
-            # 1. Κωδικός (3 Χ στα 20mm)
-            for j in range(3):
-                pdf.text(start_x_code + (j * digit_spacing), current_y, "X")
+            # ΕΚΤΥΠΩΣΗ ΚΟΥΚΙΔΑΣ (Αντί για X)
+            # Χρησιμοποιούμε μέγεθος 36 για να είναι πραγματικά μεγάλη
+            pdf.set_font("ZapfDingbats", size=36)
+            char_dot = chr(108) # Ο χαρακτήρας για τη γεμάτη κουκίδα στη ZapfDingbats
             
-            # 2. Σημείο (1, Χ, 2) στις αποστάσεις 83, 89, 95mm
+            # 1. Κωδικός (3 κουκίδες)
+            for j in range(3):
+                pdf.text(start_x_code + (j * digit_spacing), current_y, char_dot)
+            
+            # 2. Σημείο (1, Χ, 2)
             point = match['Σ']
             if point in points_map:
-                pdf.text(points_map[point], current_y, "X")
+                pdf.text(points_map[point], current_y, char_dot)
 
     return pdf.output(dest='S').encode('latin-1')
 
