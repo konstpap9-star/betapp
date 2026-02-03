@@ -31,12 +31,10 @@ st.markdown("""
 
 # 3. ΛΕΙΤΟΥΡΓΙΕΣ
 def randomize_points():
-    # Αν ο χρήστης έχει διαλέξει συγκεκριμένα σημεία στο φίλτρο
     pool = st.session_state.filter_points if st.session_state.filter_points else st.session_state.options
     for i in range(len(st.session_state.my_bet)):
         new_val = random.choice(pool)
         st.session_state.my_bet[i]['Σ'] = new_val
-        # Ενημέρωση του key του selectbox για να αλλάξει στην οθόνη
         st.session_state[f"sel_{i}"] = new_val
 
 st.title("🏆 BigBet Printer Pro")
@@ -73,7 +71,6 @@ for i, item in enumerate(st.session_state.my_bet):
     col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
     col_k.write(f"**{item['Κ']}**")
     
-    # Χρήση του key για άμεση ενημέρωση από τη συνάρτηση randomize
     choice = col_s.selectbox(f"Σημείο {i}", st.session_state.options, 
                             index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
                             key=f"sel_{i}", label_visibility="collapsed")
@@ -83,23 +80,33 @@ for i, item in enumerate(st.session_state.my_bet):
         st.session_state.my_bet.pop(i)
         st.rerun()
 
-# --- ΑΝΑΠΤΥΞΗ ---
+# --- ΕΝΟΤΗΤΑ ΑΝΑΠΤΥΞΗΣ ΣΥΣΤΗΜΑΤΟΣ ---
 if st.session_state.my_bet:
     st.divider()
     n = len(st.session_state.my_bet)
-    k = st.number_input("Ζητούμενα", 1, n, min(n, 3) if n>=3 else 1)
+    
+    # Επιλογή Συστήματος
+    k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
+    
     all_combos = list(combinations(st.session_state.my_bet, k))
-    st.write(f"Σύνολο: **{len(all_combos)} στήλες**")
+    total_columns = len(all_combos)
+    st.info(f"Σύνολο Πλήρους Ανάπτυξης: **{total_columns} στήλες**")
+
+    # ΕΠΙΛΟΓΗ ΑΡΙΘΜΟΥ ΤΥΧΑΙΩΝ ΣΤΗΛΩΝ
+    num_to_gen = st.number_input("Πόσες τυχαίες στήλες θέλεις;", 1, total_columns, min(total_columns, 10))
 
     if st.button("🎰 ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ ΣΤΗΛΩΝ"):
-        st.session_state.last_random_combos = random.sample(all_combos, min(len(all_combos), 10))
+        st.session_state.last_random_combos = random.sample(all_combos, int(num_to_gen))
 
+    # Εμφάνιση Τυχαίων Στηλών
     if st.session_state.last_random_combos:
+        st.write(f"🎰 **Επιλεγμένες Τυχαίες Στήλες ({len(st.session_state.last_random_combos)}):**")
         for idx, combo in enumerate(st.session_state.last_random_combos):
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
 
-    with st.expander("🔍 Πλήρης Ανάπτυξη"):
+    # Πλήρης Ανάπτυξη
+    with st.expander("🔍 Προβολή Πλήρους Ανάπτυξης"):
         for idx, combo in enumerate(all_combos):
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
