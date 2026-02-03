@@ -5,7 +5,7 @@ from itertools import combinations
 from fpdf import FPDF
 import io
 
-# 1. ΑΡΧΙΚΟΠΟΙΗΣΗ SESSION STATE
+# 1. ΒΑΣΙΚΕΣ ΡΥΘΜΙΣΕΙΣ (ΕΥΑΓΓΕΛΙΟ)
 if 'options' not in st.session_state:
     st.session_state.options = [
         "1", "X", "2", "1X", "X2", "12", "G/G", "N/G", 
@@ -33,7 +33,7 @@ div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border:
 </style>
 """, unsafe_allow_html=True)
 
-# 3. ΣΥΝΑΡΤΗΣΕΙΣ
+# 3. ΣΥΝΑΡΤΗΣΗ PDF (ΕΥΑΓΓΕΛΙΟ - 1.8mm)
 def create_pdf(combos):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
@@ -68,6 +68,7 @@ if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕", use_container_width=True):
 
 if st.session_state.my_bet:
     st.divider()
+    st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
     for i, item in enumerate(st.session_state.my_bet):
         col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
         col_k.write(f"**{item['Κ']}**")
@@ -84,19 +85,30 @@ if st.session_state.my_bet:
     st.markdown(f'<div class="total-wrapper"><div class="total-label">στήλες</div><div class="total-columns">{total_c}</div></div>', unsafe_allow_html=True)
     
     with st.form("gen_form"):
-        num_to_gen = st.number_input("Πόσες τυχαίες στήλες;", 1, total_c, min(total_c, 10))
-        if st.form_submit_button("🎰 ΠΑΡΑΓΩΓΗ", use_container_width=True):
-            all_combos = list(combinations(st.session_state.my_bet, k))
-            st.session_state.last_random_combos = random.sample(all_combos, int(num_to_gen))
+        num_to_gen = st.number_input("Πόσες τυχαίες;", 1, total_c, min(total_c, 10))
+        submitted = st.form_submit_button("🎰 ΠΑΡΑΓΩΓΗ", use_container_width=True)
+        
+    if submitted:
+        all_combos = list(combinations(st.session_state.my_bet, k))
+        st.session_state.last_random_combos = random.sample(all_combos, int(num_to_gen))
 
     if st.session_state.last_random_combos:
-        # ΕΜΦΑΝΙΣΗ ΟΛΩΝ ΤΩΝ ΣΤΗΛΩΝ (Χωρίς περιορισμό - Πιθανότητα κρασαρίσματος)
-        for idx, combo in enumerate(st.session_state.last_random_combos):
+        # Εμφάνιση των πρώτων 50 στηλών στην οθόνη
+        display_list = st.session_state.last_random_combos[:50]
+        for idx, combo in enumerate(display_list):
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
         
-        pdf_bytes = create_pdf(st.session_state.last_random_combos)
-        st.download_button("🖨️ ΚΑΤΕΒΑΣΜΑ PDF", data=pdf_bytes, file_name="bet_print.pdf", mime="application/pdf", use_container_width=True)
+        if len(st.session_state.last_random_combos) > 50:
+            st.warning("Εμφανίζονται οι πρώτες 50 στήλες. Όλες περιλαμβάνονται στο PDF.")
+
+        st.download_button(
+            "🖨️ ΚΑΤΕΒΑΣΜΑ PDF", 
+            data=create_pdf(st.session_state.last_random_combos), 
+            file_name="bet_print.pdf", 
+            mime="application/pdf", 
+            use_container_width=True
+        )
 
     if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ"):
         st.session_state.my_bet = []
