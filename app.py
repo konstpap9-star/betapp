@@ -25,7 +25,7 @@ st.markdown("""
 
 # 3. ΣΥΝΑΡΤΗΣΗ ΔΗΜΙΟΥΡΓΙΑΣ PDF (ΕΚΤΥΠΩΣΗ)
 def create_pdf(combos):
-    # Landscape προσανατολισμός για οριζόντια εισαγωγή δελτίου
+    # Landscape προσανατολισμός
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
@@ -33,7 +33,7 @@ def create_pdf(combos):
     start_x_code = 20    # Απόσταση Α (Κωδικός)
     start_y = 24         # Απόσταση Β (Πρώτη σειρά)
     row_height = 4       # Απόσταση μεταξύ σειρών
-    digit_spacing = 4.0  # Απόσταση ανάμεσα στα ψηφία του κωδικού (1ο, 2ο, 3ο Χ)
+    digit_spacing = 4.0  # Απόσταση ανάμεσα στα ψηφία του κωδικού
     
     # ΣΥΝΤΕΤΑΓΜΕΝΕΣ ΣΗΜΕΙΩΝ (Απόσταση από αριστερή άκρη)
     points_map = {
@@ -44,16 +44,16 @@ def create_pdf(combos):
 
     for combo in combos:
         pdf.add_page()
-        # Γραμματοσειρά Courier Bold, Μέγεθος 14 για μεγάλα και καθαρά Χ
-        pdf.set_font("Courier", style='B', size=14) 
+        # ΔΙΠΛΑΣΙΟ ΜΕΓΕΘΟΣ Χ (Μέγεθος 28, Bold)
+        pdf.set_font("Courier", style='B', size=28) 
         
         for i, match in enumerate(combo):
+            # Μικρή διόρθωση στο Y για να κεντράρει το μεγάλο Χ στη γραμμή
             current_y = start_y + (i * row_height)
             
-            # 1. Εκτύπωση Κωδικού (3 Χ για τα 3 ψηφία)
-            # Το zfill(3) εξασφαλίζει ότι πάντα έχουμε 3 ψηφία (π.χ. 001)
-            code = str(match['Κ']).zfill(3)
+            # 1. Εκτύπωση Κωδικού (3 Χ)
             for j in range(3):
+                # Χρησιμοποιούμε pdf.text για ακρίβεια θέσης
                 pdf.text(start_x_code + (j * digit_spacing), current_y, "X")
             
             # 2. Εκτύπωση Σημείου (1, Χ ή 2)
