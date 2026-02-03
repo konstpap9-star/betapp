@@ -12,27 +12,38 @@ if 'last_random_combos' not in st.session_state: st.session_state.last_random_co
 
 st.set_page_config(page_title="BigBet Printer Pro", layout="wide")
 
-# 2. ΠΛΗΡΕΣ CSS ΓΙΑ ΚΙΤΡΙΝΑ ΠΛΑΙΣΙΑ
+# 2. ΠΛΗΡΕΣ CSS ΓΙΑ ΚΙΤΡΙΝΑ ΠΛΑΙΣΙΑ (ΕΦΑΡΜΟΓΗ)
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
-    /* Κίτρινα πλαίσια εισαγωγής κειμένου (ΑΠΟ - ΕΩΣ) */
+    /* Κίτρινα πλαίσια εισαγωγής κειμένου */
     input { background-color: #FFF9C4 !important; border: 2px solid #FBC02D !important; font-weight: bold !important; color: black !important; }
-    /* Κίτρινα πλαίσια επιλογής σημείου (1, Χ, 2) */
+    /* Κίτρινα πλαίσια επιλογής (Selectbox) */
     div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 2px solid #FBC02D !important; }
-    /* Κίτρινο πλαίσιο για τις τυχαίες στήλες */
+    /* ΤΟ ΠΛΑΙΣΙΟ ΤΟΥ ΚΩΔΙΚΟΥ ΠΟΥ ΖΗΤΗΣΕΣ */
+    .code-frame {
+        background-color: #FFF9C4;
+        border: 2px solid #FBC02D;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        color: black;
+        display: inline-block;
+        min-width: 50px;
+        text-align: center;
+    }
+    /* Κίτρινο πλαίσιο αποτελεσμάτων */
     .random-box { background-color: #FFF9C4; padding: 12px; border-radius: 8px; border-left: 6px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 8px; }
     /* Mobile fix */
     div[data-baseweb="select"] input { inputmode: none !important; caret-color: transparent !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. ΣΥΝΑΡΤΗΣΗ ΔΗΜΙΟΥΡΓΙΑΣ PDF
+# 3. ΣΥΝΑΡΤΗΣΗ ΔΗΜΙΟΥΡΓΙΑΣ PDF (ΜΕΓΑΛΑ Χ)
 def create_pdf(combos):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
-    # ΡΥΘΜΙΣΕΙΣ ΑΚΡΙΒΕΙΑΣ (mm)
     start_x_code = 20    # Τα Χ του κωδικού
     start_y = 24         # Πρώτη σειρά
     row_height = 4       # Απόσταση σειρών
@@ -42,24 +53,19 @@ def create_pdf(combos):
 
     for combo in combos:
         pdf.add_page()
-        pdf.set_font("Courier", style='B', size=28) # ΜΕΓΑΛΑ Χ
+        pdf.set_font("Courier", style='B', size=28) # ΜΕΓΕΘΟΣ 28 ΟΠΩΣ ΖΗΤΗΘΗΚΕ
         
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
-            
-            # Χ κωδικού
-            code = str(match['Κ']).zfill(3)
             for j in range(3):
                 pdf.text(start_x_code + (j * digit_spacing), current_y, "X")
-            
-            # Χ σημείου
             point = match['Σ']
             if point in points_map:
                 pdf.text(points_map[point], current_y, "X")
 
     return pdf.output(dest='S').encode('latin-1')
 
-# 4. ΛΟΓΙΚΗ
+# 4. ΛΟΓΙΚΗ UI
 def randomize_points():
     pool = st.session_state.filter_points if st.session_state.filter_points else st.session_state.options
     for i in range(len(st.session_state.my_bet)):
@@ -69,7 +75,7 @@ def randomize_points():
 
 st.title("🏆 BigBet Printer Pro")
 
-# --- ΕΝΟΤΗΤΑ ΕΙΣΑΓΩΓΗΣ (ΑΠΟ - ΕΩΣ) ---
+# --- ΕΙΣΑΓΩΓΗ ---
 c1, c2 = st.columns(2)
 s_range = c1.text_input("ΑΠΟ", key="s", max_chars=3)
 e_range = c2.text_input("ΕΩΣ", key="e", max_chars=3)
@@ -82,17 +88,18 @@ if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕", use_container_width=True):
                 st.session_state.my_bet.append({"Κ": fmt, "Σ": "1"})
         st.rerun()
 
-# --- ΕΔΩ ΕΙΝΑΙ Η ΛΙΣΤΑ ΜΕ ΤΟΥΣ ΤΡΙΨΗΦΙΟΥΣ ΠΟΥ ΕΠΑΝΕΦΕΡΑ ---
+# --- ΛΙΣΤΑ ΑΓΩΝΩΝ (ΜΕ ΤΟ ΚΙΤΡΙΝΟ ΠΛΑΙΣΙΟ ΣΤΟΝ ΚΩΔΙΚΟ) ---
 if st.session_state.my_bet:
     st.divider()
     st.multiselect("🎯 Φίλτρο Τυχαίων Σημείων:", st.session_state.options, key="filter_points")
     st.button("🎲 ΤΥΧΑΙΑ ΣΥΜΠΛΗΡΩΣΗ ΑΓΩΝΩΝ", on_click=randomize_points, use_container_width=True)
     
     st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
-    # Εμφάνιση κάθε αγώνα με τον κωδικό του και το κίτρινο πλαίσιο επιλογής
     for i, item in enumerate(st.session_state.my_bet):
-        col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
-        col_k.write(f"**{item['Κ']}**") # Ο Τριψήφιος Κωδικός
+        col_k, col_s, col_d = st.columns([0.8, 2, 0.5])
+        
+        # ΕΔΩ ΕΙΝΑΙ ΤΟ ΚΙΤΡΙΝΟ ΠΛΑΙΣΙΟ ΜΕ ΤΟΝ ΤΡΙΨΗΦΙΟ
+        col_k.markdown(f'<div class="code-frame">{item["Κ"]}</div>', unsafe_allow_html=True)
         
         choice = col_s.selectbox(f"Σημείο {i}", st.session_state.options, 
                                 index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
