@@ -1,12 +1,23 @@
 import streamlit as st
 import math
 
-# 1. Σταθερή Λίστα Σημείων
-ALL_OPTS = ["1", "X", "2", "G/G", "N/G", "Over 2.5", "Under 2.5", "1X", "X2"]
+# 1. Η ΑΚΡΙΒΗΣ ΛΙΣΤΑ ΣΗΜΕΙΩΝ ΠΟΥ ΖΗΤΗΣΕΣ
+FINAL_OPTIONS = [
+    "1", "X", "2", 
+    "1X", "X2", "12",
+    "G/G", "N/G", 
+    "Over 1.5", "Under 1.5",
+    "Over 2.5", "Under 2.5", 
+    "Over 3.5", "Under 3.5",
+    "Γηπεδούχος Over 0.5", "Γηπεδούχος Over 1.5", "Γηπεδούχος Over 2.5", "Γηπεδούχος Over 3.5",
+    "Γηπεδούχος Under 0.5", "Γηπεδούχος Under 1.5", "Γηπεδούχος Under 2.5", "Γηπεδούχος Under 3.5",
+    "Φιλοξενούμενος Over 0.5", "Φιλοξενούμενος Over 1.5", "Φιλοξενούμενος Over 2.5", "Φιλοξενούμενος Over 3.5",
+    "Φιλοξενούμενος Under 0.5", "Φιλοξενούμενος Under 1.5", "Φιλοξενούμενος Under 2.5", "Φιλοξενούμενος Under 3.5"
+]
 
-st.set_page_config(page_title="BigBet Mobile Fixed", layout="wide")
+st.set_page_config(page_title="BigBet Precise Markets", layout="wide")
 
-# 2. CSS για Mobile & Compact Σχεδιασμό
+# 2. CSS για Mobile & Compact Εμφάνιση
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
@@ -16,24 +27,18 @@ st.markdown("""
     }
     input {
         background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important;
-        font-weight: bold !important; height: 35px !important;
+        font-weight: bold !important; height: 40px !important;
     }
-    /* Selectbox Styling */
+    /* Selectbox - Κίτρινο και ευανάγνωστο */
     div[data-baseweb="select"] > div {
         background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important;
-        min-height: 35px !important; padding: 0 5px !important;
+        min-height: 40px !important; font-size: 13px !important;
     }
     div[data-baseweb="select"] div[role="button"] + div { display: none !important; }
     
-    /* Κουμπί Διαγραφής ✕ */
-    .stButton > button {
-        background-color: #FFEBEE !important; color: #C62828 !important;
-        border: 1px solid #EF9A9A !important; width: 100% !important;
-        height: 35px !important; font-weight: bold !important; padding: 0 !important;
-    }
     .counter-box {
-        background-color: #FFD700; color: #0D47A1; font-size: 18px;
-        font-weight: bold; text-align: center; padding: 8px; border-radius: 10px;
+        background-color: #FFD700; color: #0D47A1; font-size: 20px;
+        font-weight: bold; text-align: center; padding: 10px; border-radius: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -41,14 +46,15 @@ st.markdown("""
 if 'my_bet' not in st.session_state: st.session_state.my_bet = []
 if 'input_counter' not in st.session_state: st.session_state.input_counter = 0
 
-st.title("🏆 BigBet Mobile")
+st.title("🏆 BigBet Printer Pro")
 
 # --- ΕΙΣΑΓΩΓΗ ---
 st.markdown('<div class="white-container">', unsafe_allow_html=True)
 c_in1, c_in2, c_in3 = st.columns([1, 1, 1.2])
-with c_in1: s_range = st.text_input("ΑΠΟ", key="start", max_chars=3, label_visibility="collapsed", placeholder="Από")
-with c_in2: e_range = st.text_input("ΕΩΣ", key="end", max_chars=3, label_visibility="collapsed", placeholder="Έως")
+with c_in1: s_range = st.text_input("ΑΠΟ", key="start", max_chars=3, placeholder="Από")
+with c_in2: e_range = st.text_input("ΕΩΣ", key="end", max_chars=3, placeholder="Έως")
 with c_in3:
+    st.write(" ")
     if st.button("ΠΡΟΣΘΗΚΗ"):
         if s_range.isdigit() and e_range.isdigit():
             for code in range(int(s_range), int(e_range) + 1):
@@ -65,32 +71,29 @@ if len(u_input) == 3 and u_input.isdigit():
     st.session_state.input_counter += 1
     st.rerun()
 
-st.markdown(f'<div class="counter-box">ΑΓΩΝΕΣ: {len(st.session_state.my_bet)}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="counter-box">ΣΥΝΟΛΟ ΑΓΩΝΩΝ: {len(st.session_state.my_bet)}</div>', unsafe_allow_html=True)
 
 # --- ΛΙΣΤΑ ΑΓΩΝΩΝ ---
 if st.session_state.my_bet:
     st.markdown('<div class="white-container">', unsafe_allow_html=True)
     
-    # Αντιστροφή λίστας για να βλέπουμε τα τελευταία πάνω-πάνω
     for i in range(len(st.session_state.my_bet)-1, -1, -1):
         item = st.session_state.my_bet[i]
-        
-        # Στήλες: Κωδικός (0.6), Σημείο (1.8), Διαγραφή (0.5)
-        cl1, cl2, cl3 = st.columns([0.6, 1.8, 0.5])
+        # Στήλες: Κωδικός (0.5), Σημείο (2.2), Διαγραφή (0.4)
+        cl1, cl2, cl3 = st.columns([0.5, 2.2, 0.4])
         
         with cl1:
             st.write(f"**{item['Κ']}**")
             
         with cl2:
-            # Εδώ χρησιμοποιούμε την ALL_OPTS που ορίσαμε στην αρχή
-            new_val = st.selectbox(
-                f"sel_{item['Κ']}_{i}", 
-                ALL_OPTS, 
-                index=ALL_OPTS.index(item['Σ']) if item['Σ'] in ALL_OPTS else 0,
-                key=f"sb_{i}",
+            choice = st.selectbox(
+                f"sel_{i}", 
+                FINAL_OPTIONS, 
+                index=FINAL_OPTIONS.index(item['Σ']) if item['Σ'] in FINAL_OPTIONS else 0,
+                key=f"sb_{item['Κ']}_{i}",
                 label_visibility="collapsed"
             )
-            st.session_state.my_bet[i]['Σ'] = new_val
+            st.session_state.my_bet[i]['Σ'] = choice
             
         with cl3:
             if st.button("✕", key=f"del_{i}"):
