@@ -26,6 +26,7 @@ st.markdown("""
     div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
     .column-box { background-color: #f0f2f6; padding: 10px; border-radius: 5px; border-left: 5px solid #0D47A1; margin-bottom: 5px; font-family: monospace; }
     .random-box { background-color: #FFF9C4; padding: 10px; border-radius: 5px; border-left: 5px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 5px; }
+    .total-columns { font-size: 24px; color: #0D47A1; font-weight: bold; text-align: center; padding: 10px; background: white; border-radius: 10px; border: 2px solid #0D47A1; margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -40,34 +41,23 @@ def randomize_points():
 def create_pdf(combos):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
-    
-    # ΡΥΘΜΙΣΕΙΣ ΣΥΝΤΕΤΑΓΜΕΝΩΝ (mm)
     start_x_code = 20  
     start_y = 24       
     row_height = 4     
     digit_spacing = 4.0 
-    
-    # ΤΟ ΣΩΣΤΟ ΜΕΓΕΘΟΣ ΚΟΥΚΙΔΑΣ (Ακτίνα 1.8mm)
     radius = 1.8 
-    
     points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
     for combo in combos:
         pdf.add_page()
         pdf.set_fill_color(0, 0, 0)
-        
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
-            
-            # 1. Κωδικός (3 γεμάτες κουκίδες)
             for j in range(3):
                 pdf.ellipse(start_x_code + (j * digit_spacing), current_y - radius, radius*2, radius*2, style='F')
-            
-            # 2. Σημείο (1, Χ, 2)
             point = match['Σ']
             if point in points_map:
                 pdf.ellipse(points_map[point], current_y - radius, radius*2, radius*2, style='F')
-
     return pdf.output(dest='S').encode('latin-1')
 
 # --- UI LOGIC ---
@@ -112,6 +102,12 @@ if st.session_state.my_bet:
     st.divider()
     n = len(st.session_state.my_bet)
     k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
+    
+    # ΥΠΟΛΟΓΙΣΜΟΣ ΚΑΙ ΕΜΦΑΝΙΣΗ ΣΥΝΟΛΟΥ ΣΤΗΛΩΝ (ΜΟΝΟ ΝΟΥΜΕΡΟ)
+    import math
+    total_c = math.comb(n, k)
+    st.markdown(f'<div class="total-columns">{total_c}</div>', unsafe_allow_html=True)
+    
     all_combos = list(combinations(st.session_state.my_bet, k))
     
     with st.form("random_gen_form"):
