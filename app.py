@@ -3,7 +3,7 @@ import math
 import random
 from itertools import combinations
 
-# 1. ΣΤΑΘΕΡΗ ΛΙΣΤΑ ΣΗΜΕΙΩΝ
+# --- 1. ΑΡΧΙΚΟΠΟΙΗΣΗ ---
 if 'options' not in st.session_state:
     st.session_state.options = [
         "1", "X", "2", "1X", "X2", "12", "G/G", "N/G", 
@@ -14,18 +14,31 @@ if 'options' not in st.session_state:
         "Γ Under 2.5", "Φ Under 2.5", "Γ Under 3.5", "Φ Under 3.5"
     ]
 
-# Αρχικοποίηση μνήμης για τυχαίες στήλες
 if 'last_random_combos' not in st.session_state:
     st.session_state.last_random_combos = []
 
-st.set_page_config(page_title="BigBet Random Fixed", layout="wide")
+if 'my_bet' not in st.session_state: 
+    st.session_state.my_bet = []
 
-# 2. CSS για Mobile & Κίτρινα Πεδία
+# ΣΥΝΑΡΤΗΣΗ ΓΙΑ ΤΥΧΑΙΑ ΣΥΜΠΛΗΡΩΣΗ ΣΗΜΕΙΩΝ
+def randomize_all_selections():
+    for i in range(len(st.session_state.my_bet)):
+        random_choice = random.choice(st.session_state.options)
+        st.session_state[f"sel_{i}"] = random_choice
+        st.session_state.my_bet[i]['Σ'] = random_choice
+
+st.set_page_config(page_title="Dinos Bet Pro", layout="wide")
+
+# --- 2. CSS ΓΙΑ MOBILE & STYLING ---
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
+    /* Απενεργοποίηση πληκτρολογίου σε κινητά για τα Selectboxes */
+    div[data-baseweb="select"] input { inputmode: none !important; caret-color: transparent !important; }
+    
     input { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; font-weight: bold !important; }
     div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
+    
     .column-box { 
         background-color: #f0f2f6; padding: 10px; border-radius: 5px; 
         font-family: monospace; font-size: 14px; margin-bottom: 5px; border-left: 5px solid #0D47A1;
@@ -38,22 +51,31 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-if 'my_bet' not in st.session_state: st.session_state.my_bet = []
+# --- 3. ΛΟΓΟΤΥΠΟ ---
+# Χρησιμοποιούμε το URL της εικόνας που δημιουργήσαμε
+st.image("https://raw.githubusercontent.com/Google/gemini-assets/main/dinos_bet_logo.png", width=250) 
+# Σημείωση: Αν την έχεις κατεβάσει τοπικά, άλλαξε το URL σε "dinos_logo.png"
 
-st.title("🏆 BigBet Printer Pro")
-
-# --- ΕΙΣΑΓΩΓΗ ---
+# --- 4. ΕΙΣΑΓΩΓΗ ---
 with st.container():
     c1, c2 = st.columns(2)
     with c1: s_range = st.text_input("ΑΠΟ", key="s", max_chars=3)
     with c2: e_range = st.text_input("ΕΩΣ", key="e", max_chars=3)
-    if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕"):
-        if s_range.isdigit() and e_range.isdigit():
-            for code in range(int(s_range), int(e_range) + 1):
-                fmt = str(code).zfill(3)
-                if not any(x['Κ'] == fmt for x in st.session_state.my_bet):
-                    st.session_state.my_bet.append({"Κ": fmt, "Σ": "1"})
-            st.rerun()
+    
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕", use_container_width=True):
+            if s_range.isdigit() and e_range.isdigit():
+                for code in range(int(s_range), int(e_range) + 1):
+                    fmt = str(code).zfill(3)
+                    if not any(x['Κ'] == fmt for x in st.session_state.my_bet):
+                        st.session_state.my_bet.append({"Κ": fmt, "Σ": "1"})
+                st.rerun()
+    
+    with col_btn2:
+        if st.session_state.my_bet:
+            if st.button("🎲 ΤΥΧΑΙΑ ΣΗΜΕΙΑ ΣΕ ΟΛΑ", on_click=randomize_all_selections, use_container_width=True):
+                pass
 
     u_input = st.text_input("📍 ΚΩΔΙΚΟΣ", key="manual", max_chars=3)
     if len(u_input) == 3 and u_input.isdigit():
@@ -61,14 +83,14 @@ with st.container():
             st.session_state.my_bet.append({"Κ": u_input, "Σ": "1"})
             st.rerun()
 
-# --- ΛΙΣΤΑ ΑΓΩΝΩΝ ---
+# --- 5. ΛΙΣΤΑ ΑΓΩΝΩΝ ---
 st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
 for i, item in enumerate(st.session_state.my_bet):
     col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
     with col_k: st.write(f"**{item['Κ']}**")
     with col_s:
+        # Χρησιμοποιούμε το key για να επιτρέψουμε την αυτόματη ενημέρωση
         choice = st.selectbox("Σημείο", st.session_state.options, 
-            index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
             key=f"sel_{i}", label_visibility="collapsed")
         st.session_state.my_bet[i]['Σ'] = choice
     with col_d:
@@ -76,7 +98,7 @@ for i, item in enumerate(st.session_state.my_bet):
             st.session_state.my_bet.pop(i)
             st.rerun()
 
-# --- ΣΥΣΤΗΜΑ, ΤΥΧΑΙΑ & ΑΝΑΠΤΥΞΗ ---
+# --- 6. ΣΥΣΤΗΜΑ, ΤΥΧΑΙΑ & ΑΝΑΠΤΥΞΗ ---
 if st.session_state.my_bet:
     st.divider()
     n = len(st.session_state.my_bet)
@@ -88,10 +110,10 @@ if st.session_state.my_bet:
 
     # ΤΥΧΑΙΑ ΕΠΙΛΟΓΗ (ΜΟΝΙΜΑ ΟΡΑΤΗ)
     st.markdown("---")
-    st.subheader("🎲 Τυχαία Επιλογή")
+    st.subheader("🎲 Παραγωγή Τυχαίων Στηλών")
     num_random = st.number_input("Πόσες τυχαίες στήλες θέλεις;", 1, total_cols, min(total_cols, 5))
     
-    if st.button("ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ 🎲"):
+    if st.button("ΠΑΡΑΓΩΓΗ ΤΥΧΑΙΩΝ ΣΤΗΛΩΝ 🎰"):
         st.session_state.last_random_combos = random.sample(all_combos, int(num_random))
 
     # Εμφάνιση των τυχαίων αν υπάρχουν
