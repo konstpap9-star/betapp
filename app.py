@@ -1,5 +1,6 @@
 import streamlit as st
 import math
+import random
 from itertools import combinations
 
 # 1. ΣΤΑΘΕΡΗ ΛΙΣΤΑ ΣΗΜΕΙΩΝ
@@ -13,7 +14,7 @@ if 'options' not in st.session_state:
         "Γ Under 2.5", "Φ Under 2.5", "Γ Under 3.5", "Φ Under 3.5"
     ]
 
-st.set_page_config(page_title="BigBet Full Pro", layout="wide")
+st.set_page_config(page_title="BigBet Random & Full", layout="wide")
 
 # 2. CSS για Mobile & Κίτρινα Πεδία
 st.markdown("""
@@ -21,10 +22,13 @@ st.markdown("""
     .stApp { background-color: #E3F2FD; }
     input { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; font-weight: bold !important; }
     div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
-    .stButton>button { width: 100%; }
     .column-box { 
         background-color: #f0f2f6; padding: 10px; border-radius: 5px; 
-        font-family: monospace; font-size: 14px; margin-bottom: 5px;
+        font-family: monospace; font-size: 14px; margin-bottom: 5px; border-left: 5px solid #0D47A1;
+    }
+    .random-box { 
+        background-color: #FFF9C4; padding: 10px; border-radius: 5px; 
+        font-family: monospace; font-size: 14px; margin-bottom: 5px; border-left: 5px solid #FBC02D;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -54,41 +58,21 @@ with st.container():
 
 # --- ΛΙΣΤΑ ---
 st.subheader(f"Αγώνες: {len(st.session_state.my_bet)}")
-
-# Δείχνουμε τη λίστα
 for i, item in enumerate(st.session_state.my_bet):
     col_k, col_s, col_d = st.columns([0.6, 2, 0.5])
     with col_k: st.write(f"**{item['Κ']}**")
     with col_s:
-        choice = st.selectbox(
-            "Σημείο", st.session_state.options, 
+        choice = st.selectbox("Σημείο", st.session_state.options, 
             index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
-            key=f"sel_{i}", label_visibility="collapsed"
-        )
+            key=f"sel_{i}", label_visibility="collapsed")
         st.session_state.my_bet[i]['Σ'] = choice
     with col_d:
         if st.button("✕", key=f"del_{i}"):
             st.session_state.my_bet.pop(i)
             st.rerun()
 
-# --- ΣΥΣΤΗΜΑ & ΑΝΑΠΤΥΞΗ ---
+# --- ΣΥΣΤΗΜΑ, ΑΝΑΠΤΥΞΗ & ΤΥΧΑΙΑ ---
 if st.session_state.my_bet:
     st.divider()
     n = len(st.session_state.my_bet)
-    k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
-    
-    # Υπολογισμός Συνδυασμών
-    combos = list(combinations(st.session_state.my_bet, k))
-    st.write(f"Σύνολο Στηλών: **{len(combos)}**")
-    
-    # Εμφάνιση Ανάπτυξης
-    with st.expander("🔍 Δες την Ανάπτυξη των Στηλών"):
-        for idx, combo in enumerate(combos):
-            codes = [c['Κ'] for c in combo]
-            signs = [c['Σ'] for c in combo]
-            txt = " | ".join([f"{c}({s})" for c, s in zip(codes, signs)])
-            st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
-
-    if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ ΟΛΩΝ"):
-        st.session_state.my_bet = []
-        st.rerun()
+    k = st.number_input("Ζητούμενα (
