@@ -12,30 +12,30 @@ if 'last_random_combos' not in st.session_state: st.session_state.last_random_co
 
 st.set_page_config(page_title="BigBet Printer Pro", layout="wide")
 
-# 2. CSS ΓΙΑ MOBILE & ΧΡΩΜΑΤΑ
+# 2. CSS ΓΙΑ MOBILE & ΚΙΤΡΙΝΑ ΧΡΩΜΑΤΑ
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
-    div[data-baseweb="select"] input { inputmode: none !important; }
-    input { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; font-weight: bold !important; }
+    input { background-color: #FFF9C4 !important; border: 2px solid #FBC02D !important; font-weight: bold !important; color: black !important; }
+    div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 2px solid #FBC02D !important; }
     .column-box { background-color: #f0f2f6; padding: 10px; border-radius: 5px; border-left: 5px solid #0D47A1; margin-bottom: 5px; font-family: monospace; }
     .random-box { background-color: #FFF9C4; padding: 10px; border-radius: 5px; border-left: 5px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 5px; }
+    div[data-baseweb="select"] input { inputmode: none !important; caret-color: transparent !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. ΣΥΝΑΡΤΗΣΗ ΔΗΜΙΟΥΡΓΙΑΣ PDF (ΕΚΤΥΠΩΣΗ)
+# 3. ΣΥΝΑΡΤΗΣΗ ΔΗΜΙΟΥΡΓΙΑΣ PDF (ΜΕ ΑΡΙΘΜΟ ΚΑΙ ΜΕΓΑΛΑ Χ)
 def create_pdf(combos):
-    # Landscape προσανατολισμός για οριζόντια εισαγωγή δελτίου
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
-    # ΡΥΘΜΙΣΕΙΣ ΑΠΟ ΤΙΣ ΜΕΤΡΗΣΕΙΣ ΣΟΥ (mm)
-    start_x_code = 20    # Απόσταση Α (Κωδικός)
-    start_y = 24         # Απόσταση Β (Πρώτη σειρά)
-    row_height = 4       # Απόσταση μεταξύ σειρών
-    digit_spacing = 4.0  # Απόσταση ανάμεσα στα ψηφία του κωδικού (1ο, 2ο, 3ο Χ)
+    # ΡΥΘΜΙΣΕΙΣ ΑΚΡΙΒΕΙΑΣ
+    start_x_text = 5     # Πού θα τυπώνεται ο αριθμός (για να τον βλέπεις εσύ)
+    start_x_code = 20    # Πού ξεκινούν τα Χ του κωδικού (για το μηχάνημα)
+    start_y = 24         
+    row_height = 4       
+    digit_spacing = 4.0  
     
-    # ΣΥΝΤΕΤΑΓΜΕΝΕΣ ΣΗΜΕΙΩΝ (Απόσταση από αριστερή άκρη)
     points_map = {
         "1": 83.0,
         "X": 89.0,
@@ -44,19 +44,23 @@ def create_pdf(combos):
 
     for combo in combos:
         pdf.add_page()
-        # Γραμματοσειρά Courier Bold, Μέγεθος 14 για μεγάλα και καθαρά Χ
-        pdf.set_font("Courier", style='B', size=14) 
         
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
             
-            # 1. Εκτύπωση Κωδικού (3 Χ για τα 3 ψηφία)
-            # Το zfill(3) εξασφαλίζει ότι πάντα έχουμε 3 ψηφία (π.χ. 001)
+            # 1. ΕΜΦΑΝΙΣΗ ΤΟΥ ΑΡΙΘΜΟΥ (Μικρή γραμματοσειρά για σένα)
+            pdf.set_font("Arial", size=8)
+            pdf.text(start_x_text, current_y, f"({match['Κ']})")
+            
+            # 2. ΕΚΤΥΠΩΣΗ ΜΕΓΑΛΩΝ Χ (Μέγεθος 28 για το μηχάνημα)
+            pdf.set_font("Courier", style='B', size=28)
+            
+            # Τα Χ του κωδικού
             code = str(match['Κ']).zfill(3)
             for j in range(3):
                 pdf.text(start_x_code + (j * digit_spacing), current_y, "X")
             
-            # 2. Εκτύπωση Σημείου (1, Χ ή 2)
+            # Το Χ του σημείου
             point = match['Σ']
             if point in points_map:
                 target_x = points_map[point]
@@ -64,7 +68,7 @@ def create_pdf(combos):
 
     return pdf.output(dest='S').encode('latin-1')
 
-# 4. ΛΕΙΤΟΥΡΓΙΕΣ UI
+# 4. ΛΟΓΙΚΗ UI
 def randomize_points():
     pool = st.session_state.filter_points if st.session_state.filter_points else st.session_state.options
     for i in range(len(st.session_state.my_bet)):
@@ -74,7 +78,7 @@ def randomize_points():
 
 st.title("🏆 BigBet Printer Pro")
 
-# --- ΕΙΣΑΓΩΓΗ ΑΓΩΝΩΝ ---
+# --- ΕΝΟΤΗΤΑ ΕΙΣΑΓΩΓΗΣ ---
 c1, c2 = st.columns(2)
 s_range = c1.text_input("ΑΠΟ", key="s", max_chars=3)
 e_range = c2.text_input("ΕΩΣ", key="e", max_chars=3)
@@ -127,7 +131,6 @@ if st.session_state.my_bet:
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="random-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
         
-        # ΚΟΥΜΠΙ ΕΚΤΥΠΩΣΗΣ PDF
         pdf_bytes = create_pdf(st.session_state.last_random_combos)
         st.download_button(
             label="🖨️ ΚΑΤΕΒΑΣΜΑ PDF ΓΙΑ ΕΚΤΥΠΩΣΗ",
