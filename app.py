@@ -22,6 +22,7 @@ st.markdown("""
     .stApp { background-color: #E3F2FD; }
     input { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; font-weight: bold !important; }
     .column-box { background-color: #ffffff; padding: 8px; border-radius: 5px; border-left: 5px solid #0D47A1; margin-bottom: 5px; font-family: monospace; border: 1px solid #ddd; }
+    .random-box { background-color: #FFF9C4; padding: 10px; border-radius: 5px; border-left: 5px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -33,7 +34,7 @@ def create_pdf(combos):
     start_y = 24       
     row_height = 4     
     digit_spacing = 4.0 
-    radius = 1.8 
+    radius = 1.8 # ΤΟ ΜΕΓΕΘΟΣ ΕΥΑΓΓΕΛΙΟ
     points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
     for combo in combos:
@@ -50,7 +51,7 @@ def create_pdf(combos):
 
 st.title("🏆 BigBet Printer Pro")
 
-# --- ΕΙΣΑΓΩΓΗ ---
+# --- ΕΙΣΑΓΩΓΗ ΑΓΩΝΩΝ ---
 c1, c2 = st.columns(2)
 s_range = c1.text_input("ΑΠΟ", key="s", max_chars=3)
 e_range = c2.text_input("ΕΩΣ", key="e", max_chars=3)
@@ -75,26 +76,24 @@ if st.session_state.my_bet:
             st.session_state.my_bet.pop(i)
             st.rerun()
 
-    # --- ΕΝΟΤΗΤΑ ΑΝΑΠΤΥΞΗΣ (ΜΟΝΟ ΜΕ FORM) ---
+    # --- ΕΝΟΤΗΤΑ ΑΝΑΠΤΥΞΗΣ (ΜΟΝΟ ΜΕ ΕΝΤΟΛΗ) ---
     st.divider()
     st.subheader("📊 Ρυθμίσεις Ανάπτυξης")
     
     with st.form("analysis_form"):
         n = len(st.session_state.my_bet)
         k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
-        
-        # Το κουμπί που δίνει την εντολή
         submit_button = st.form_submit_button("🚀 ΕΚΤΕΛΕΣΗ ΑΝΑΠΤΥΞΗΣ", use_container_width=True)
 
     if submit_button:
         all_combos = list(combinations(st.session_state.my_bet, k))
         st.success(f"Ολοκληρώθηκε! Δημιουργήθηκαν **{len(all_combos)}** στήλες.")
         
-        # Κουμπί PDF
-        pdf_data = create_pdf(all_combos)
-        st.download_button("🖨️ ΚΑΤΕΒΑΣΜΑ PDF ΟΛΩΝ ΤΩΝ ΣΤΗΛΩΝ", pdf_data, "bet_full.pdf", use_container_width=True)
+        # Λήψη PDF
+        pdf_all = create_pdf(all_combos)
+        st.download_button("🖨️ ΚΑΤΕΒΑΣΜΑ PDF ΟΛΩΝ ΤΩΝ ΣΤΗΛΩΝ", pdf_all, "bet_full.pdf", use_container_width=True)
         
-        # Λίστα
+        # Προβολή Στηλών
         for idx, combo in enumerate(all_combos):
             txt = " | ".join([f"{c['Κ']}({c['Σ']})" for c in combo])
             st.markdown(f'<div class="column-box">Στήλη {idx+1}: {txt}</div>', unsafe_allow_html=True)
