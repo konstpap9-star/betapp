@@ -2,7 +2,7 @@ import streamlit as st
 import random
 from itertools import combinations
 
-# 1. ΑΡΧΙΚΟΠΟΙΗΣΗ
+# 1. ΑΡΧΙΚΟΠΟΙΗΣΗ ΜΝΗΜΗΣ
 if 'my_bet' not in st.session_state: st.session_state.my_bet = []
 if 'last_random_combos' not in st.session_state: st.session_state.last_random_combos = []
 if 'options' not in st.session_state:
@@ -29,14 +29,27 @@ st.markdown("""
 
 st.title("🏆 BigBet Printer Pro")
 
-# --- ΕΙΣΑΓΩΓΗ ---
-c1, c2 = st.columns(2)
-s_range = c1.text_input("ΑΠΟ", key="s", max_chars=3)
-e_range = c2.text_input("ΕΩΣ", key="e", max_chars=3)
+# --- ΕΝΟΤΗΤΑ 1: ΕΙΣΑΓΩΓΗ ---
+with st.container():
+    col_r1, col_r2 = st.columns(2)
+    s_range = col_r1.text_input("ΑΠΟ", key="s", max_chars=3)
+    e_range = col_r2.text_input("ΕΩΣ", key="e", max_chars=3)
 
-if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕", use_container_width=True):
-    if s_range.isdigit() and e_range.isdigit():
-        for code in range(int(s_range), int(e_range) + 1):
-            fmt = str(code).zfill(3)
-            if not any(x['Κ'] == fmt for x in st.session_state.my_bet):
-                st.session_state.my_bet.append
+    if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ ➕", use_container_width=True):
+        if s_range.isdigit() and e_range.isdigit():
+            for code in range(int(s_range), int(e_range) + 1):
+                fmt = str(code).zfill(3)
+                if not any(x['Κ'] == fmt for x in st.session_state.my_bet):
+                    st.session_state.my_bet.append({"Κ": fmt, "Σ": "1"})
+            st.rerun()
+
+    # Χειροκίνητος Κωδικός με έλεγχο για να μην "παγώνει" τη σελίδα
+    u_input = st.text_input("📍 ΚΩΔΙΚΟΣ (3 ψηφία)", key="manual", max_chars=3)
+    if u_input and len(u_input) == 3 and u_input.isdigit():
+        if not any(x['Κ'] == u_input for x in st.session_state.my_bet):
+            st.session_state.my_bet.append({"Κ": u_input, "Σ": "1"})
+            # Καθαρίζουμε το πεδίο χειροκίνητα για την επόμενη εισαγωγή
+            st.session_state.manual = "" 
+            st.rerun()
+
+# --- ΕΝΟΤΗΤΑ 2: ΤΥΧΑΙΑ ΣΥΜΠΛΗΡΩΣΗ (Μόνο αν υπάρχ
