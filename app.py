@@ -27,23 +27,30 @@ st.markdown("""
     .column-box { background-color: #f0f2f6; padding: 10px; border-radius: 5px; border-left: 5px solid #0D47A1; margin-bottom: 5px; font-family: monospace; }
     .random-box { background-color: #FFF9C4; padding: 10px; border-radius: 5px; border-left: 5px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 5px; }
     
-    /* ΤΟ ΧΡΥΣΟ ΠΛΑΙΣΙΟ ΣΤΟ 1/3 */
-    .total-container {
+    /* ΤΟ ΚΙΤΡΙΝΟ ΠΛΑΙΣΙΟ ΣΤΑ 2/3 ΜΕ ΤΙΤΛΟ */
+    .total-wrapper {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
         width: 100%;
         margin: 15px 0;
     }
+    .total-label {
+        font-size: 14px;
+        color: #0D47A1;
+        font-weight: normal;
+        margin-bottom: 2px;
+    }
     .total-columns {
-        width: 33%;
-        font-size: 28px;
+        width: 66%;
+        font-size: 32px;
         color: #0D47A1;
         font-weight: bold;
         text-align: center;
         padding: 10px;
-        background: #FFD700; /* Χρυσό */
+        background: #FFFF00; /* Κίτρινο */
         border-radius: 12px;
-        border: 3px solid #B8860B; /* Σκούρο χρυσό περίγραμμα */
+        border: 3px solid #FBC02D;
         box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
     }
     </style>
@@ -122,10 +129,15 @@ if st.session_state.my_bet:
     n = len(st.session_state.my_bet)
     k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
     
-    # ΤΟ ΧΡΥΣΟ ΜΙΚΡΟ ΠΛΑΙΣΙΟ
+    # ΤΟ ΚΙΤΡΙΝΟ ΠΛΑΙΣΙΟ ΜΕ ΤΗ ΛΕΞΗ "στήλες"
     import math
     total_c = math.comb(n, k)
-    st.markdown(f'<div class="total-container"><div class="total-columns">{total_c}</div></div>', unsafe_allow_html=True)
+    st.markdown(f'''
+        <div class="total-wrapper">
+            <div class="total-label">στήλες</div>
+            <div class="total-columns">{total_c}</div>
+        </div>
+        ''', unsafe_allow_html=True)
     
     all_combos = list(combinations(st.session_state.my_bet, k))
     
