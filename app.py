@@ -17,7 +17,7 @@ if 'last_random_combos' not in st.session_state: st.session_state.last_random_co
 
 st.set_page_config(page_title="BigBet Printer Pro", layout="wide")
 
-# 2. CSS ΓΙΑ MOBILE FIX & ΧΡΩΜΑΤΑ (ΕΥΑΓΓΕΛΙΟ)
+# 2. CSS (ΕΥΑΓΓΕΛΙΟ - UPDATED)
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
@@ -26,7 +26,26 @@ st.markdown("""
     div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
     .column-box { background-color: #f0f2f6; padding: 10px; border-radius: 5px; border-left: 5px solid #0D47A1; margin-bottom: 5px; font-family: monospace; }
     .random-box { background-color: #FFF9C4; padding: 10px; border-radius: 5px; border-left: 5px solid #FBC02D; color: #0D47A1; font-weight: bold; margin-bottom: 5px; }
-    .total-columns { font-size: 24px; color: #0D47A1; font-weight: bold; text-align: center; padding: 10px; background: white; border-radius: 10px; border: 2px solid #0D47A1; margin-top: 10px; }
+    
+    /* ΤΟ ΧΡΥΣΟ ΠΛΑΙΣΙΟ ΣΤΟ 1/3 */
+    .total-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin: 15px 0;
+    }
+    .total-columns {
+        width: 33%;
+        font-size: 28px;
+        color: #0D47A1;
+        font-weight: bold;
+        text-align: center;
+        padding: 10px;
+        background: #FFD700; /* Χρυσό */
+        border-radius: 12px;
+        border: 3px solid #B8860B; /* Σκούρο χρυσό περίγραμμα */
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -103,10 +122,10 @@ if st.session_state.my_bet:
     n = len(st.session_state.my_bet)
     k = st.number_input("Ζητούμενα (Σύστημα)", 1, n, min(n, 3) if n>=3 else 1)
     
-    # ΥΠΟΛΟΓΙΣΜΟΣ ΚΑΙ ΕΜΦΑΝΙΣΗ ΣΥΝΟΛΟΥ ΣΤΗΛΩΝ (ΜΟΝΟ ΝΟΥΜΕΡΟ)
+    # ΤΟ ΧΡΥΣΟ ΜΙΚΡΟ ΠΛΑΙΣΙΟ
     import math
     total_c = math.comb(n, k)
-    st.markdown(f'<div class="total-columns">{total_c}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="total-container"><div class="total-columns">{total_c}</div></div>', unsafe_allow_html=True)
     
     all_combos = list(combinations(st.session_state.my_bet, k))
     
