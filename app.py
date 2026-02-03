@@ -1,67 +1,40 @@
 import streamlit as st
 import math
 
-# 1. Η ΝΕΑ ΛΙΣΤΑ ΣΗΜΕΙΩΝ ΜΕ ΣΥΝΤΟΜΟΓΡΑΦΙΕΣ (Γ & Φ)
-FINAL_OPTIONS = [
-    "1", "X", "2", 
-    "1X", "X2", "12",
-    "G/G", "N/G", 
-    "Over 1.5", "Under 1.5",
-    "Over 2.5", "Under 2.5", 
-    "Over 3.5", "Under 3.5",
-    # ΓΗΠΕΔΟΥΧΟΣ & ΦΙΛΟΞΕΝΟΥΜΕΝΟΣ ΜΑΖΙ (OVER)
-    "Γ Over 0.5", "Φ Over 0.5",
-    "Γ Over 1.5", "Φ Over 1.5",
-    "Γ Over 2.5", "Φ Over 2.5",
-    "Γ Over 3.5", "Φ Over 3.5",
-    # ΓΗΠΕΔΟΥΧΟΣ & ΦΙΛΟΞΕΝΟΥΜΕΝΟΣ ΜΑΖΙ (UNDER)
-    "Γ Under 0.5", "Φ Under 0.5",
-    "Γ Under 1.5", "Φ Under 1.5",
-    "Γ Under 2.5", "Φ Under 2.5",
-    "Γ Under 3.5", "Φ Under 3.5"
-]
+# 1. ΟΡΙΣΤΙΚΗ ΛΙΣΤΑ - ΔΕΝ ΑΛΛΑΖΕΙ ΠΟΤΕ
+if 'options' not in st.session_state:
+    st.session_state.options = [
+        "1", "X", "2", "1X", "X2", "12", "G/G", "N/G", 
+        "Over 1.5", "Under 1.5", "Over 2.5", "Under 2.5", "Over 3.5", "Under 3.5",
+        "Γ Over 0.5", "Φ Over 0.5", "Γ Over 1.5", "Φ Over 1.5", 
+        "Γ Over 2.5", "Φ Over 2.5", "Γ Over 3.5", "Φ Over 3.5",
+        "Γ Under 0.5", "Φ Under 0.5", "Γ Under 1.5", "Φ Under 1.5", 
+        "Γ Under 2.5", "Φ Under 2.5", "Γ Under 3.5", "Φ Under 3.5"
+    ]
 
-st.set_page_config(page_title="BigBet Precise Mobile", layout="wide")
+st.set_page_config(page_title="BigBet Stable", layout="wide")
 
-# 2. CSS για Mobile Optimization
+# 2. ΑΠΛΟ CSS (Μόνο τα απαραίτητα για να μην κολλάει)
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
-    .white-container {
-        background-color: #FFFFFF; padding: 10px; border-radius: 10px;
-        margin-bottom: 5px; border: 1px solid #BBDEFB;
-    }
-    input {
-        background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important;
-        font-weight: bold !important; height: 40px !important;
-    }
-    /* Selectbox - Κίτρινο και Compact */
-    div[data-baseweb="select"] > div {
-        background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important;
-        min-height: 40px !important; font-size: 15px !important;
-    }
-    div[data-baseweb="select"] div[role="button"] + div { display: none !important; }
-    
-    .counter-box {
-        background-color: #FFD700; color: #0D47A1; font-size: 20px;
-        font-weight: bold; text-align: center; padding: 10px; border-radius: 10px;
-    }
+    .block-container { padding-top: 2rem; }
+    input { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
+    div[data-baseweb="select"] > div { background-color: #FFF9C4 !important; border: 1px solid #FBC02D !important; }
+    .stButton>button { width: 100%; border-radius: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
 if 'my_bet' not in st.session_state: st.session_state.my_bet = []
-if 'input_counter' not in st.session_state: st.session_state.input_counter = 0
 
-st.title("🏆 BigBet Printer Pro")
+st.title("🏆 BigBet Printer")
 
 # --- ΕΙΣΑΓΩΓΗ ---
-st.markdown('<div class="white-container">', unsafe_allow_html=True)
-c_in1, c_in2, c_in3 = st.columns([1, 1, 1.2])
-with c_in1: s_range = st.text_input("ΑΠΟ", key="start", max_chars=3, placeholder="Από")
-with c_in2: e_range = st.text_input("ΕΩΣ", key="end", max_chars=3, placeholder="Έως")
-with c_in3:
-    st.write(" ")
-    if st.button("ΠΡΟΣΘΗΚΗ"):
+with st.expander("➕ Προσθήκη Αγώνων", expanded=True):
+    c1, c2 = st.columns(2)
+    with c1: s_range = st.text_input("ΑΠΟ", key="s", max_chars=3)
+    with c2: e_range = st.text_input("ΕΩΣ", key="e", max_chars=3)
+    if st.button("ΠΡΟΣΘΗΚΗ ΕΥΡΟΥΣ"):
         if s_range.isdigit() and e_range.isdigit():
             for code in range(int(s_range), int(e_range) + 1):
                 fmt = str(code).zfill(3)
@@ -69,4 +42,42 @@ with c_in3:
                     st.session_state.my_bet.append({"Κ": fmt, "Σ": "1"})
             st.rerun()
 
-u_input =
+    u_input = st.text_input("📍 ΜΕΜΟΝΩΜΕΝΟΣ ΚΩΔΙΚΟΣ", key="manual", max_chars=3)
+    if len(u_input) == 3 and u_input.isdigit():
+        st.session_state.my_bet.append({"Κ": u_input, "Σ": "1"})
+        st.rerun()
+
+# --- ΛΙΣΤΑ ---
+st.subheader(f"Σύνολο: {len(st.session_state.my_bet)}")
+
+for i, item in enumerate(reversed(st.session_state.my_bet)):
+    idx = len(st.session_state.my_bet) - 1 - i
+    col_k, col_s, col_d = st.columns([0.5, 2, 0.5])
+    
+    with col_k:
+        st.write(f"**{item['Κ']}**")
+    with col_s:
+        # Χρήση του session_state για τη λίστα
+        choice = st.selectbox(
+            "Σημείο", 
+            st.session_state.options, 
+            index=st.session_state.options.index(item['Σ']) if item['Σ'] in st.session_state.options else 0,
+            key=f"sel_{idx}",
+            label_visibility="collapsed"
+        )
+        st.session_state.my_bet[idx]['Σ'] = choice
+    with col_d:
+        if st.button("✕", key=f"del_{idx}"):
+            st.session_state.my_bet.pop(idx)
+            st.rerun()
+
+# --- ΣΥΣΤΗΜΑ ---
+if st.session_state.my_bet:
+    st.divider()
+    n = len(st.session_state.my_bet)
+    k = st.number_input("Ζητούμενα", 1, n, min(n, 3) if n>=3 else 1)
+    st.write(f"Στήλες: **{math.comb(n, k)}**")
+    
+    if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ ΟΛΩΝ"):
+        st.session_state.my_bet = []
+        st.rerun()
