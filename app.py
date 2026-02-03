@@ -47,8 +47,8 @@ def create_pdf(combos):
     row_height = 4     
     digit_spacing = 4.0 
     
-    # ΝΕΟ ΜΕΓΕΘΟΣ ΚΟΥΚΙΔΑΣ (Ακτίνα 1.3mm -> Διάμετρος 2.6mm)
-    radius = 1.3 
+    # EXTRA LARGE ΚΟΥΚΙΔΑ (Ακτίνα 1.8mm -> Διάμετρος 3.6mm)
+    radius = 1.8 
     
     points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
@@ -59,9 +59,9 @@ def create_pdf(combos):
         for i, match in enumerate(combo):
             current_y = start_y + (i * row_height)
             
-            # 1. Κωδικός (3 γεμάτες κουκίδες)
+            # 1. Κωδικός (3 μεγάλες γεμάτες κουκίδες)
             for j in range(3):
-                # Τοποθέτηση με κεντράρισμα βάσει της ακτίνας
+                # Κεντράρισμα βάσει της νέας ακτίνας
                 pdf.ellipse(start_x_code + (j * digit_spacing), current_y - radius, radius*2, radius*2, style='F')
             
             # 2. Σημείο (1, Χ, 2)
