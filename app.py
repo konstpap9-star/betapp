@@ -17,7 +17,7 @@ if 'last_random_combos' not in st.session_state: st.session_state.last_random_co
 
 st.set_page_config(page_title="BigBet Printer Pro", layout="wide")
 
-# 2. CSS (ΑΠΕΙΡΑΧΤΟ ΑΠΟ ΕΥΑΓΓΕΛΙΟ)
+# 2. CSS ΓΙΑ MOBILE FIX & ΧΡΩΜΑΤΑ (ΑΠΕΙΡΑΧΤΟ ΑΠΟ ΕΥΑΓΓΕΛΙΟ)
 st.markdown("""
     <style>
     .stApp { background-color: #E3F2FD; }
@@ -41,34 +41,33 @@ def create_pdf(combos):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=False)
     
-    # ΡΥΘΜΙΣΕΙΣ (mm)
+    # ΡΥΘΜΙΣΕΙΣ ΣΥΝΤΕΤΑΓΜΕΝΩΝ (mm)
     start_x_code = 20  
     start_y = 24       
     row_height = 4     
     digit_spacing = 4.0 
     
-    # Μέγεθος του "γεμάτου" τετραγώνου
-    rect_w = 3.0 # Πλάτος
-    rect_h = 2.5 # Ύψος
+    # Μέγεθος κουκίδας (Ακτίνα)
+    radius = 1.0 # Διάμετρος 2mm
     
     points_map = {"1": 83.0, "X": 89.0, "2": 95.0}
 
     for combo in combos:
         pdf.add_page()
-        pdf.set_fill_color(0, 0, 0) # Μαύρο χρώμα γεμίσματος
+        pdf.set_fill_color(0, 0, 0) # Μαύρο χρώμα
         
         for i, match in enumerate(combo):
-            current_y = start_y + (i * row_height) - (rect_h / 2) # Κεντράρισμα στο ύψος
+            current_y = start_y + (i * row_height)
             
-            # 1. Κωδικός (3 γεμάτα κουτάκια)
+            # 1. Κωδικός (3 γεμάτες κουκίδες/κύκλοι)
             for j in range(3):
-                # draw_mode='F' σημαίνει Filled (Γεμάτο)
-                pdf.rect(start_x_code + (j * digit_spacing), current_y, rect_w, rect_h, style='F')
+                # pdf.ellipse(x, y, w, h, style='F')
+                pdf.ellipse(start_x_code + (j * digit_spacing), current_y - radius, radius*2, radius*2, style='F')
             
             # 2. Σημείο (1, Χ, 2)
             point = match['Σ']
             if point in points_map:
-                pdf.rect(points_map[point], current_y, rect_w, rect_h, style='F')
+                pdf.ellipse(points_map[point], current_y - radius, radius*2, radius*2, style='F')
 
     return pdf.output(dest='S').encode('latin-1')
 
