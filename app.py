@@ -151,6 +151,20 @@ if st.session_state.my_bet:
         
         pdf_bytes = create_pdf(st.session_state.last_random_combos)
         st.download_button("🖨️ ΚΑΤΕΒΑΣΜΑ PDF", data=pdf_bytes, file_name="bet_print.pdf", mime="application/pdf", use_container_width=True)
+    # ΚΟΥΜΠΙ ΕΞΑΓΩΓΗΣ ΓΙΑ ΤΗΝ ΕΦΑΡΜΟΓΗ ΕΚΤΥΠΩΣΗΣ
+    if st.session_state.last_random_combos:
+        export_data = ""
+        for combo in st.session_state.last_random_combos:
+            line = ",".join([f"{c['Κ']}:{c['Σ']}" for c in combo])
+            export_data += line + "\n"
+        
+        st.download_button(
+            "💾 ΕΞΑΓΩΓΗ ΣΤΗΛΩΝ ΓΙΑ ΕΚΤΥΠΩΤΗ",
+            data=export_data,
+            file_name="to_print.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
 
     if st.button("🗑️ ΚΑΘΑΡΙΣΜΟΣ"):
         st.session_state.my_bet = []
